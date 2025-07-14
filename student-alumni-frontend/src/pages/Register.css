@@ -1,0 +1,42 @@
+/* Register.css */
+.register-container {
+  max-width: 450px;
+  margin: 3rem auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #fefcfb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.register-container h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #0353a4;
+}
+
+.register-container input,
+.register-container select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.register-container button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #1282a2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.register-container button:hover {
+  background-color: #006daa;
+}

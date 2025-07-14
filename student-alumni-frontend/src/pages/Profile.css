@@ -1,0 +1,61 @@
+/* Profile.css */
+.profile-container {
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: #fefcfb;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.profile-container h2 {
+  margin-bottom: 1.5rem;
+  color: #034078;
+  text-align: center;
+}
+
+.profile-container p {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  color: #333;
+}
+
+.profile-container strong {
+  color: #061a40;
+}
+
+.profile-container form {
+  margin-top: 1.5rem;
+}
+
+/* Inputs, textareas, selects get consistent styling */
+.profile-container textarea,
+.profile-container input,
+.profile-container select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* Button styling */
+.profile-container button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #1282a2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.profile-container button:hover {
+  background-color: #006daa;
+}
