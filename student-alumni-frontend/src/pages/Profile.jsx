@@ -76,7 +76,7 @@ const Profile = () => {
   if (!profile) return <p>Loading...</p>;
 
   const specializationOptions = {
-    'B.Tech': ['CSE', 'ECE', 'EEE', 'Mechanical'],
+    'B.Tech': ['CSE', 'ECE', 'EEE', 'Mechanical', 'civil'],
     'M.Tech': ['Bioscience', 'ECE', 'Data Science'],
     'Ph.D': ['CSE', 'Bioscience', 'Physics']
   };
