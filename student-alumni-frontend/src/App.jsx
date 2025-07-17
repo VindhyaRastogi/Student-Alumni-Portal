@@ -5,7 +5,7 @@ import HomePage from './pages/HomePage';
 import Dashboard from './admin/Dashboard';
 import Profile from './pages/Profile';
 import AlumniList from './pages/AlumniList';
-import MeetingPage from './pages/MeetingPage';
+import Meeting from './pages/Meeting';
 import AdminUserList from './admin/AdminUserList';
 import AlumniProfile from './pages/AlumniProfile';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,20 +31,19 @@ const App = () => {
         {/* Protected Routes */}
         <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/student/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/alumni/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
 
         <Route path="/student/alumni-list" element={<ProtectedRoute><AlumniList /></ProtectedRoute>} />
 
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/alumni/:id" element={<ProtectedRoute><AlumniProfile /></ProtectedRoute>} />
-        <Route path="/meetings" element={<ProtectedRoute><MeetingPage /></ProtectedRoute>} />
+        <Route path="/student/meetings" element={<ProtectedRoute><Meeting /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedAdminRoute><AdminUserList /></ProtectedAdminRoute>} />
 
         {/* Role-based Dashboards */}
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/alumni/dashboard" element={<AlumniDashboard />} />
-        <Route path="/student/profile" element={<StudentProfile />} />
       </Routes>
     </>
   );

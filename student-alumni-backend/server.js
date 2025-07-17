@@ -13,8 +13,13 @@ app.use(express.json());
 // Routes
 const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes');
-const meetingRoutes = require('./routes/meetingRoutes');
+
 const adminRoutes = require('./routes/adminRoutes');
+const alumniSlotsRoutes = require('./routes/alumniSlotsRoutes');
+const meetingRoutes = require('./routes/meetingRoutes.js');
+
+// Use routes
+app.use('/api/alumni', alumniSlotsRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

@@ -1,38 +1,46 @@
-nav {
-  background-color: #034078;
+/* Navbar.css */
+.navbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  gap: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  flex-wrap: wrap;
+  background-color: #001f54;
+  padding: 0.75rem 2rem;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-nav a {
-  color: #fefcfb;
+.navbar-left,
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.navbar-left a,
+.navbar-right a,
+.logout-btn {
+  color: white;
   text-decoration: none;
   font-weight: 500;
-  font-size: 1rem;
   transition: color 0.3s ease;
 }
 
-nav a:hover,
-nav a.active {
-  color: #ffd700;
-  border-bottom: 2px solid #ffd700;
+.navbar-left a:hover,
+.navbar-right a:hover {
+  color: #f0a500;
 }
 
-nav button {
-  margin-left: auto;
-  background-color: #1282a2;
-  color: #fff;
-  padding: 0.4rem 1rem;
+.logout-btn {
+  padding: 0.5rem 1.2rem;
+  background-color: #034078;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: bold;
   transition: background-color 0.3s ease;
 }
 
-nav button:hover {
-  background-color: #0f5d7f;
+.logout-btn:hover {
+  background-color: #0466c8;
 }

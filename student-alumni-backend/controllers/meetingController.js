@@ -1,7 +1,7 @@
 const Meeting = require('../models/Meeting');
 const Availability = require('../models/Availability');
 
-// Alumni: Add available slots
+// ALUMNI: Add slots
 exports.addAvailability = async (req, res) => {
   const { slots } = req.body;
   try {
@@ -16,7 +16,7 @@ exports.addAvailability = async (req, res) => {
   }
 };
 
-// Student: Get available slots for an alumni
+// STUDENT: Get available slots
 exports.getAvailableSlots = async (req, res) => {
   try {
     const data = await Availability.findOne({ alumniId: req.params.alumniId });
@@ -26,7 +26,7 @@ exports.getAvailableSlots = async (req, res) => {
   }
 };
 
-// Student: Book a meeting
+// STUDENT: Book meeting
 exports.bookMeeting = async (req, res) => {
   const { alumniId, timeSlot } = req.body;
   try {
@@ -37,7 +37,6 @@ exports.bookMeeting = async (req, res) => {
       status: 'scheduled'
     });
 
-    // Remove slot from alumni availability
     await Availability.findOneAndUpdate(
       { alumniId },
       { $pull: { slots: timeSlot } }
@@ -49,7 +48,7 @@ exports.bookMeeting = async (req, res) => {
   }
 };
 
-// Student: Cancel meeting
+// STUDENT: Cancel meeting
 exports.cancelMeeting = async (req, res) => {
   try {
     const meeting = await Meeting.findByIdAndUpdate(
@@ -63,7 +62,7 @@ exports.cancelMeeting = async (req, res) => {
   }
 };
 
-// Student: View all their meetings
+// STUDENT: View meetings
 exports.getStudentMeetings = async (req, res) => {
   try {
     const meetings = await Meeting.find({ studentId: req.user.id })
@@ -71,5 +70,52 @@ exports.getStudentMeetings = async (req, res) => {
     res.json(meetings);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get meetings' });
+  }
+};
+
+// ALUMNI: View meetings
+exports.getAlumniMeetings = async (req, res) => {
+  try {
+    const meetings = await Meeting.find({ alumniId: req.user.id })
+      .populate('studentId', 'name email');
+    res.json(meetings);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get alumni meetings' });
+  }
+};
+
+// ALUMNI: Confirm meeting
+exports.confirmMeeting = async (req, res) => {
+  try {
+    const meeting = await Meeting.findById(req.params.meetingId);
+    if (!meeting) return res.status(404).json({ error: 'Meeting not found' });
+
+    if (String(meeting.alumniId) !== req.user.id)
+      return res.status(403).json({ error: 'Unauthorized' });
+
+    meeting.status = 'confirmed';
+    await meeting.save();
+
+    res.json({ message: 'Meeting confirmed', meeting });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to confirm meeting' });
+  }
+};
+
+// ALUMNI: Cancel meeting
+exports.cancelByAlumni = async (req, res) => {
+  try {
+    const meeting = await Meeting.findById(req.params.meetingId);
+    if (!meeting) return res.status(404).json({ error: 'Meeting not found' });
+
+    if (String(meeting.alumniId) !== req.user.id)
+      return res.status(403).json({ error: 'Unauthorized' });
+
+    meeting.status = 'cancelled';
+    await meeting.save();
+
+    res.json({ message: 'Meeting cancelled', meeting });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to cancel meeting' });
   }
 };

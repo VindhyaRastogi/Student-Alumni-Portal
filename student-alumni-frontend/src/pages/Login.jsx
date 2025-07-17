@@ -30,7 +30,7 @@ const Login = () => {
       if (user.role === 'student') {
   navigate('/student/profile');
 } else if (user.role === 'alumni') {
-  navigate('/alumni/profile/' + user._id);
+  navigate('/alumni/dashboard/' + user._id);
 } else {
         navigate('/');
       }

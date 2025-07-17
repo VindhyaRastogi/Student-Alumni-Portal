@@ -10,6 +10,8 @@ const AlumniProfile = () => {
   const token = user?.token;
 
   const [alumni, setAlumni] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     const fetchAlumni = async () => {
@@ -18,6 +20,7 @@ const AlumniProfile = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setAlumni(res.data);
+        setFormData(res.data);
       } catch (err) {
         console.error('Error fetching alumni profile:', err);
         alert('Unable to load alumni profile');
@@ -27,40 +30,75 @@ const AlumniProfile = () => {
     fetchAlumni();
   }, [id]);
 
-  if (!alumni) return <p style={{ padding: '2rem' }}>Loading...</p>;
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/users/${id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAlumni(res.data);
+      setIsEditing(false);
+      alert('Profile updated successfully');
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      alert('Failed to update profile');
+    }
+  };
+
+  if (!alumni) return <p className="loading-text">Loading...</p>;
 
   return (
-    <div className="alumni-profile">
-      <h2>{alumni.name}'s Profile</h2>
-      <div className="alumni-details">
-        {/* Profile Picture */}
-        {alumni.profilePicture && (
-          <img
-            src={alumni.profilePicture}
-            alt={`${alumni.name}'s profile`}
-            className="profile-picture"
-          />
+    <div className="alumni-profile-card">
+      <div className="profile-header">
+        <img
+          src={alumni.profilePicture || '/default-profile.png'}
+          alt="Profile"
+          className="profile-img"
+        />
+        <h2>{alumni.name}</h2>
+        <p className="alumni-role">{alumni.role}</p>
+      </div>
+
+      <div className="profile-details">
+        {[
+          { label: 'Email', name: 'email' },
+          { label: 'Degree', name: 'degree' },
+          { label: 'Specialization', name: 'specialization' },
+          { label: 'Batch', name: 'batch' },
+          { label: 'Organization', name: 'organization' },
+          { label: 'Role', name: 'workRole' },
+          { label: 'City', name: 'city' },
+          { label: 'State', name: 'state' },
+          { label: 'Country', name: 'country' }
+        ].map(({ label, name }) => (
+          <div className="profile-field" key={name}>
+            <strong>{label}:</strong>
+            {isEditing ? (
+              <input
+                type="text"
+                name={name}
+                value={formData[name] || ''}
+                onChange={handleChange}
+              />
+            ) : (
+              <span>{alumni[name] || 'Not specified'}</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="profile-actions">
+        {isEditing ? (
+          <>
+            <button className="save-btn" onClick={handleSave}>Save</button>
+            <button className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
+          </>
+        ) : (
+          <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
         )}
-
-        {/* Email */}
-        <p><strong>Email:</strong> {alumni.email}</p>
-
-        {/* Degree, Specialization, Batch */}
-        <p><strong>Degree:</strong> {alumni.degree}</p>
-        <p><strong>Specialization:</strong> {alumni.specialization}</p>
-        <p><strong>Batch:</strong> {alumni.batch}</p>
-
-        {/* Work Section */}
-        <p><strong>Organization:</strong> {alumni.organization || 'Not specified'}</p>
-        <p><strong>Role:</strong> {alumni.workRole || 'Not specified'}</p>
-
-        {/* Location Section */}
-        <p><strong>City:</strong> {alumni.city}</p>
-        <p><strong>State:</strong> {alumni.state}</p>
-        <p><strong>Country:</strong> {alumni.country}</p>
-
-        {/* Optional */}
-        <p><strong>Role (System):</strong> {alumni.role}</p>
       </div>
     </div>
   );

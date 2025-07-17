@@ -1,35 +1,85 @@
-.alumni-profile {
+.alumni-profile-card {
+  max-width: 600px;
+  margin: 3rem auto;
   padding: 2rem;
-  max-width: 700px;
-  margin: auto;
+  background: #fefcfb;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', sans-serif;
 }
 
-.alumni-profile h2 {
-  color: #034078;
-  margin-bottom: 1rem;
+.profile-header {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.alumni-details {
-  background-color: #fefcfb;
-  padding: 1.5rem;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-}
-
-.alumni-details p {
-  font-size: 1rem;
-  margin: 0.6rem 0;
-}
-
-.profile-picture {
+.profile-img {
   width: 120px;
   height: 120px;
-  object-fit: cover;
   border-radius: 50%;
-  margin-bottom: 1rem;
-  border: 2px solid #1282a2;
+  object-fit: cover;
+  border: 4px solid #034078;
 }
 
+.alumni-role {
+  color: #666;
+  font-size: 14px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+}
+
+.profile-field input {
+  padding: 6px;
+  font-size: 15px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.profile-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 10px 20px;
+  margin: 0 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.edit-btn {
+  background-color: #034078;
+  color: white;
+}
+
+.save-btn {
+  background-color: #1282a2;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: black;
+}
+
+.loading-text {
+  padding: 2rem;
+  text-align: center;
+  font-size: 18px;
+}
