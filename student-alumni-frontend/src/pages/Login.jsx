@@ -28,9 +28,9 @@ const Login = () => {
 
       // Redirect based on role
       if (user.role === 'student') {
-  navigate('/student/profile');
+  navigate('/student/profile/');
 } else if (user.role === 'alumni') {
-  navigate('/alumni/dashboard/' + user._id);
+  navigate('/alumni/profile/' );
 } else {
         navigate('/');
       }
