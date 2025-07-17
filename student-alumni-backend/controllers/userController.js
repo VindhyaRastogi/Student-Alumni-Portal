@@ -12,25 +12,36 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const allowedFields = [
-      'bio', 'jobTitle', 'company', // common
-      'degree', 'specialization', 'batch', 'workRole', 'organization', 'profilePicture', // alumni
-      'city', 'state', 'country',   // location (alumni)
-      'branch', 'graduationYear'    // student
+      'bio', 'jobTitle', 'company',               // common
+      'degree', 'specialization', 'batch',        // academic
+      'workRole', 'organization',                 // alumni
+      'city', 'state', 'country',                 // location
+      'branch', 'graduationYear', 'semester', 'year' // student
     ];
 
     const updates = {};
 
+    // ✅ Add all allowed fields from the request body
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     }
 
+    // ✅ Handle uploaded profile picture (if any)
+    if (req.file) {
+      updates.profilePicture = `/uploads/${req.file.filename}`; // Adjust if using cloud storage
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { $set: updates },
-      { new: true }
+      { new: true, runValidators: true }
     ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     res.json(updatedUser);
   } catch (err) {
@@ -38,6 +49,7 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Error updating profile' });
   }
 };
+
 
 exports.getFilteredAlumni = async (req, res) => {
   try {

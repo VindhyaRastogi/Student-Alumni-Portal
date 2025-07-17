@@ -17,7 +17,7 @@ const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const alumniSlotsRoutes = require('./routes/alumniSlotsRoutes');
 const meetingRoutes = require('./routes/meetingRoutes.js');
-
+const path = require('path');
 // Use routes
 app.use('/api/alumni', alumniSlotsRoutes);
 
@@ -25,6 +25,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/admin', adminRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
