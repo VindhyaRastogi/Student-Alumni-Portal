@@ -34,7 +34,7 @@ const StudentProfile = () => {
         year: res.data.year || '',
         batch: res.data.batch || ''
       });
-      setPreviewUrl(res.data.profilePicture || '');
+      setPreviewUrl(`${import.meta.env.VITE_API_BASE_URL}${res.data.profilePicture}`);
     } catch (err) {
       console.error('Error fetching student profile:', err);
       alert('Failed to load student profile');
@@ -56,33 +56,43 @@ const StudentProfile = () => {
   };
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const data = new FormData();
+  try {
+    const data = new FormData();
+
+    if (profilePicture) {
       data.append('profilePicture', profilePicture);
-      Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
-      });
-
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/users/update`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
-
-      setProfile(res.data);
-      alert('Profile updated successfully!');
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      alert('Failed to update profile');
     }
-  };
+
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+
+    // Debugging output
+    for (let [key, value] of data.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    const res = await axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/users/update`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    setProfile(res.data);
+    alert('✅ Profile updated successfully!');
+  } catch (err) {
+    console.error('❌ Error updating profile:', err.response?.data || err.message);
+    alert(`❌ Failed to update profile: ${err.response?.data?.message || err.message}`);
+  }
+};
+;
 
   useEffect(() => {
     fetchProfile();
