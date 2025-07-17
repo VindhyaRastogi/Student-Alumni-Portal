@@ -34,7 +34,8 @@ const App = () => {
         <Route path="/alumni/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
 
-        <Route path="/student/alumni-list" element={<ProtectedRoute><AlumniList /></ProtectedRoute>} />
+        <Route path="/student/alumni" element={<ProtectedRoute><AlumniList /></ProtectedRoute>} />
+
 
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/alumni/:id" element={<ProtectedRoute><AlumniProfile /></ProtectedRoute>} />
