@@ -6,7 +6,7 @@
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background-color: #fefcfb;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .login-container h2 {
@@ -56,8 +56,6 @@
   text-decoration: underline;
 }
 
-
-
 /* Role selection buttons inside login-container */
 .login-container .segmented {
   display: flex;
@@ -88,4 +86,3 @@
   color: #000000;
   border-color: #006daa;
 }
-
