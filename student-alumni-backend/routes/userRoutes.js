@@ -1,29 +1,33 @@
 const express = require('express');
-const { auth } = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware'); // ✅ You were missing this line
 const {
   getProfile,
+  createProfile,
   updateProfile,
-  getFilteredAlumni
+  getAllAlumni,
+  getAlumniById
 } = require('../controllers/userController');
-const User = require('../models/User');
+const { protect } = require('../middleware/authMiddleware');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
-router.get('/me', auth, getProfile);
-router.put('/update', auth, upload.single('profilePicture'), updateProfile);
-router.get('/alumni', auth, getFilteredAlumni);
-
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select('-password');
-    if (!user || user.role !== 'alumni') {
-      return res.status(404).json({ error: 'Alumni not found' });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
+// Setup multer for image uploads
+const storage = multer.diskStorage({
+  destination: 'uploads/',
+  filename: (req, file, cb) => {
+    const unique = Date.now() + path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${unique}`);
+  },
 });
+
+const upload = multer({ storage });
+
+// Routes
+router.get('/me', protect, getProfile);
+router.post('/', protect, upload.single('profilePicture'), createProfile);
+router.put('/:id', protect, upload.single('profilePicture'), updateProfile);
+router.get('/alumni', protect, getAllAlumni);
+router.get('/alumni/:id', protect, getAlumniById);
 
 module.exports = router;

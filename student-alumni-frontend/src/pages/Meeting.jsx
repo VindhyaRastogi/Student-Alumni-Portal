@@ -1,66 +1,76 @@
 // src/pages/Meeting.jsx
-// import './Meeting.css';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const Meeting = () => {
   const [meetings, setMeetings] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState('');
-  const [alumniEmail, setAlumniEmail] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState("");
+  const [alumniEmail, setAlumniEmail] = useState("");
+
+  const token = localStorage.getItem("token");
 
   const fetchMeetings = async () => {
     try {
-      const res = await axios.get('/api/meetings');
-      console.log('Meeting data:', res.data);
-
-      const fetchedMeetings = Array.isArray(res.data)
-        ? res.data
-        : res.data.meetings || [];
-
-      setMeetings(fetchedMeetings);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setMeetings(res.data || []);
     } catch (err) {
-      console.error('Error fetching meetings:', err);
+      console.error("Error fetching meetings:", err);
       setMeetings([]);
     }
   };
 
   const fetchAvailableSlots = async (email) => {
     try {
-      // Assuming backend route supports email query or param instead of ID
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/alumni/slots?email=${encodeURIComponent(email)}`
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/slots?email=${encodeURIComponent(
+          email
+        )}`
       );
-      const slots = Array.isArray(res.data) ? res.data : [];
-      console.log('Available slots:', slots);
-      setAvailableSlots(slots);
+      setAvailableSlots(res.data || []);
       setAlumniEmail(email);
     } catch (err) {
-      console.error('Error fetching slots:', err);
+      console.error("Error fetching slots:", err);
       setAvailableSlots([]);
     }
   };
 
   const scheduleMeeting = async () => {
     try {
-      await axios.post('/api/meetings', {
-        alumniEmail, // changed from alumniId to alumniEmail
-        slot: selectedSlot,
-      });
-      setSelectedSlot('');
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings`,
+        {
+          alumniEmail,
+          slot: selectedSlot,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setSelectedSlot("");
       setAvailableSlots([]);
       fetchMeetings();
     } catch (err) {
-      console.error(err);
+      console.error("Error scheduling meeting:", err);
     }
   };
 
   const cancelMeeting = async (id) => {
     try {
-      await axios.delete(`/api/meetings/${id}`);
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchMeetings();
     } catch (err) {
-      console.error('Failed to cancel meeting:', err);
+      console.error("Failed to cancel meeting:", err);
     }
   };
 
@@ -73,15 +83,15 @@ const Meeting = () => {
       <h2>Your Scheduled Meetings</h2>
 
       <ul className="meeting-list">
-        {Array.isArray(meetings) && meetings.length > 0 ? (
+        {meetings.length > 0 ? (
           meetings.map((meeting) => (
             <li key={meeting._id} className="meeting-item">
               <span>
-                With: <strong>{meeting.alumniName || 'Unknown'}</strong> at{' '}
-                <strong>{meeting.slot}</strong> - Status:{' '}
+                With: <strong>{meeting.alumniName || "Unknown"}</strong> at{" "}
+                <strong>{meeting.slot}</strong> - Status:{" "}
                 <em>{meeting.status}</em>
               </span>
-              {meeting.status === 'Scheduled' && (
+              {meeting.status === "Scheduled" && (
                 <button
                   className="cancel-button"
                   onClick={() => cancelMeeting(meeting._id)}
@@ -131,5 +141,5 @@ const Meeting = () => {
     </div>
   );
 };
- 
+
 export default Meeting;

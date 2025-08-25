@@ -1,0 +1,31 @@
+.alumni-profile-card {
+  width: 400px;
+  margin: 30px auto;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  background-color: #fefcfb;
+  text-align: center;
+}
+
+.alumni-profile-card img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.alumni-profile-card h2 {
+  margin-top: 10px;
+  font-size: 24px;
+}
+
+.alumni-profile-card p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.alumni-profile-card a {
+  color: #034078;
+  text-decoration: none;
+}

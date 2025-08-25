@@ -1,213 +1,145 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext'; // ✅ import the context
 import './Profile.css';
+import axios from 'axios';
 
 const StudentProfile = () => {
-  const { user } = useAuth();
-  const token = user?.token;
+  const { user } = useAuth(); // ✅ fetch user from context
 
-  const [profile, setProfile] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    gender: '',
+    phone: '',
     degree: '',
-    branch: '',
     specialization: '',
-    semester: '',
-    year: '',
-    batch: ''
+    batch: '',
+    linkedin: '',
+    profilePicture: null,
   });
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
 
-  const fetchProfile = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  const [previewImage, setPreviewImage] = useState(null);
 
-      setProfile(res.data);
-      setFormData({
-        degree: res.data.degree || '',
-        branch: res.data.branch || '',
-        specialization: res.data.specialization || '',
-        semester: res.data.semester || '',
-        year: res.data.year || '',
-        batch: res.data.batch || ''
-      });
-      setPreviewUrl(`${import.meta.env.VITE_API_BASE_URL}${res.data.profilePicture}`);
-    } catch (err) {
-      console.error('Error fetching student profile:', err);
-      alert('Failed to load student profile');
-    }
-  };
-
+  // ✅ Set name and email from login/registration
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: user.name || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-      setProfilePicture(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    const { name, value, files } = e.target;
+    if (name === 'profilePicture') {
+      setFormData({ ...formData, profilePicture: files[0] });
+      setPreviewImage(URL.createObjectURL(files[0]));
     } else {
-      alert('Only .jpg and .png files are allowed');
+      setFormData({ ...formData, [name]: value });
     }
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    try {
-      const data = new FormData();
-      if (profilePicture) {
-        data.append('profilePicture', profilePicture);
-      }
-      Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
-      });
-
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/users/update`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      setProfile(res.data);
-      alert('✅ Profile updated successfully!');
-      setIsEditing(false);
-    } catch (err) {
-      console.error('❌ Error updating profile:', err.response?.data || err.message);
-      alert(`❌ Failed to update profile: ${err.response?.data?.message || err.message}`);
-    }
-  };
-
-  if (!profile) return <p>Loading...</p>;
-
-  const branchOptions = {
-    'B.Tech': [
-      'Computer Science & Engineering',
-      'Electronics and Communications Engineering',
-      'Computer Science and Applied Mathematics',
-      'Computer Science and Design',
-      'Computer Science and Social Sciences',
-      'Computer Science and Biosciences',
-      'Computer Science and Artificial Intelligence',
-      'Electronics and VLSI Engineering',
-      'Computer Science and Economics'
-    ],
-    'M.Tech': ['CSE', 'CSE-Research', 'ECE', 'CB'],
-    'Ph.D': [
-      'Computational Biology (CB)',
-      'Computer Science and Engineering (CSE)',
-      'Electronics and Communications Engineering (ECE)',
-      'Human Centered and Design (HCD)',
-      'Mathematics (Maths)',
-      'Social Sciences and Humanities (SSH)'
-    ]
   };
 
   const specializationOptions = {
-    CSE: ['Artificial Intelligence', 'Data Engineering', 'Information Security', 'Mobile Computing', 'Without Specialization'],
-    ECE: ['VLSI & Embedded Systems', 'Communication', 'Machine Learning', 'Without Specialization']
+    BTech: ['CSE', 'ECE', 'IT'],
+    MTech: ['CSE', 'ECE'],
+    PhD: ['CSE', 'ECE', 'Maths']
   };
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const token = localStorage.getItem('token');
+
+    const formToSend = new FormData();
+    for (const key in formData) {
+      if (key === 'profilePicture' && formData.profilePicture) {
+        formToSend.append('profilePicture', formData.profilePicture);
+      } else {
+        formToSend.append(key, formData[key]);
+      }
+    }
+
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
+      formToSend, // ✅ use FormData here
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // ✅ important for FormData
+        },
+      }
+    );
+
+    alert('Profile saved successfully!');
+    console.log('Saved profile:', res.data);
+  } catch (err) {
+    console.error('Full error:', err);
+    console.error('Server response:', err.response?.data);
+    alert('Failed to save profile. Try again.');
+  }
+};
+
+
+
+ 
+
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <h2>Your Profile</h2>
-        {!isEditing && (
-          <button onClick={() => setIsEditing(true)} className="edit-button">Edit Profile</button>
-        )}
-      </div>
+     <div className="profile-container">
+      <h2>Student Profile</h2>
+      <form onSubmit={handleSubmit} className="profile-form">
+        <label>Full Name</label>
+        <input type="text" name="fullName" value={formData.fullName} readOnly />
 
-      {/* Profile Card */}
-      {!isEditing ? (
-        <div className="profile-card">
-  {previewUrl && (
-    <img src={previewUrl} alt="Profile" className="profile-picture" />
-  )}
-  <p><strong>Name:</strong> {profile.name}</p>
-  <p><strong>Email:</strong> {profile.email}</p>
-  <p><strong>Role:</strong> {profile.role}</p>
-  <p><strong>Degree:</strong> {profile.degree}</p>
-  <p><strong>Branch:</strong> {profile.branch}</p>
-  <p><strong>Specialization:</strong> {profile.specialization}</p>
-  <p><strong>Semester:</strong> {profile.semester}</p>
-  <p><strong>Year:</strong> {profile.year}</p>
-  <p><strong>Batch:</strong> {profile.batch}</p>
+        <label>Email</label>
+        <input type="email" name="email" value={formData.email} readOnly />
 
-  {!isEditing && (
-    <button onClick={() => setIsEditing(true)} className="edit-button">
-      Edit
-    </button>
-  )}
-</div>
+        <label>Gender</label>
+        <select name="gender" value={formData.gender} onChange={handleChange} required>
+          <option value="">Select Gender</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Other">Other</option>
+        </select>
 
-      ) : (
-        // Edit Form
-        <form onSubmit={handleUpdate} encType="multipart/form-data">
-          <h3>Update Profile Picture</h3>
-          <input type="file" accept=".jpg,.jpeg,.png" onChange={handleImageChange} />
-          
-          <h3>Academic Information</h3>
-          <label>Degree</label>
-          <select name="degree" value={formData.degree} onChange={handleChange}>
-            <option value="">Select Degree</option>
-            <option value="B.Tech">B.Tech</option>
-            <option value="M.Tech">M.Tech</option>
-            <option value="Ph.D">Ph.D</option>
-          </select>
+        <label>Phone Number</label>
+        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
 
-          {formData.degree && (
-            <>
-              <label>Branch</label>
-              <select name="branch" value={formData.branch} onChange={handleChange}>
-                <option value="">Select Branch</option>
-                {branchOptions[formData.degree]?.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </>
-          )}
+        <label>Degree</label>
+        <select name="degree" value={formData.degree} onChange={handleChange} required>
+          <option value="">Select Degree</option>
+          <option value="BTech">BTech</option>
+          <option value="MTech">MTech</option>
+          <option value="PhD">PhD</option>
+        </select>
 
-          {formData.degree === 'M.Tech' && (formData.branch === 'CSE' || formData.branch === 'ECE') && (
-            <>
-              <label>Specialization</label>
-              <select name="specialization" value={formData.specialization} onChange={handleChange}>
-                <option value="">Select Specialization</option>
-                {specializationOptions[formData.branch]?.map((spec) => (
-                  <option key={spec} value={spec}>{spec}</option>
-                ))}
-              </select>
-            </>
-          )}
+        <label>Specialization</label>
+        <select name="specialization" value={formData.specialization} onChange={handleChange} required>
+          <option value="">Select Specialization</option>
+          {(specializationOptions[formData.degree] || []).map((spec) => (
+            <option key={spec} value={spec}>{spec}</option>
+          ))}
+        </select>
 
-          <label>Semester</label>
-          <input type="text" name="semester" value={formData.semester} onChange={handleChange} />
+        <label>Batch</label>
+<select name="batch" value={formData.batch} onChange={handleChange}>
+  <option value="">Select Batch</option>
+  <option value="2020-2024">2020-2024</option>
+  <option value="2021-2025">2021-2025</option>
+  <option value="2022-2026">2022-2026</option>
+ 
+</select>
+        <label>LinkedIn Profile</label>
+        <input type="text" name="linkedin" value={formData.linkedin} onChange={handleChange} required />
 
-          <label>Year</label>
-          <input type="text" name="year" value={formData.year} onChange={handleChange} />
+        <label>Profile Picture</label>
+        <input type="file" name="profilePicture" accept="image/*" onChange={handleChange} />
+        {previewImage && <img src={previewImage} alt="Preview" className="profile-preview" />}
 
-          <label>Batch</label>
-          <input type="text" name="batch" value={formData.batch} onChange={handleChange} />
-
-          <div style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
-            <button type="submit">Save Changes</button>
-            <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
-          </div>
-        </form>
-      )}
+        <button type="submit">Save Profile</button>
+      </form>
     </div>
   );
 };

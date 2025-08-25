@@ -1,94 +1,74 @@
 const User = require('../models/User');
 
-exports.getProfile = async (req, res) => {
+// GET /users/me
+const getProfile = async (req, res) => {
+  res.json(req.user);
+};
+
+// POST /users (create new profile)
+const createProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    const data = { ...req.body };
+    if (req.file) data.profilePicture = `/uploads/${req.file.filename}`;
+
+    const existing = await User.findOne({ email: req.user.email });
+    if (existing) return res.status(400).json({ message: 'Profile already exists' });
+
+    const newUser = new User({ ...data, email: req.user.email });
+    await newUser.save();
+    res.json(newUser);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ message: 'Server error while creating profile' });
   }
 };
 
-// exports.updateProfile = async (req, res) => {
-//   try {
-//     const allowedFields = [
-//       'bio', 'jobTitle', 'company',               // common
-//       'degree', 'specialization', 'batch',        // academic
-//       'workRole', 'organization',                 // alumni
-//       'city', 'state', 'country',                 // location
-//       'branch', 'graduationYear', 'semester', 'year' // student
-//     ];
-
-//     const updates = {};
-
-//     // ✅ Add all allowed fields from the request body
-//     for (const field of allowedFields) {
-//       if (req.body[field] !== undefined) {
-//         updates[field] = req.body[field];
-//       }
-//     }
-
-//     // ✅ Handle uploaded profile picture (if any)
-//     if (req.file) {
-//       updates.profilePicture = `/uploads/${req.file.filename}`; // Adjust if using cloud storage
-//     }
-
-//     const updatedUser = await User.findByIdAndUpdate(
-//       req.user.id,
-//       { $set: updates },
-//       { new: true, runValidators: true }
-//     ).select('-password');
-
-//     if (!updatedUser) {
-//       return res.status(404).json({ error: 'User not found' });
-//     }
-
-//     res.json(updatedUser);
-//   } catch (err) {
-//     console.error('Profile update error:', err);
-//     res.status(500).json({ error: 'Error updating profile' });
-//   }
-// };
-
-exports.updateProfile = async (req, res) => {
+// PUT /users/:id (update profile)
+const updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const updates = { ...req.body };
+    if (req.file) updates.profilePicture = `/uploads/${req.file.filename}`;
 
-    if (req.file) {
-      user.profilePicture = `/uploads/${req.file.filename}`;
-    }
-
-    const fields = ['degree', 'branch', 'specialization', 'semester', 'year', 'batch'];
-    for (let field of fields) {
-      if (req.body[field] !== undefined) {
-        user[field] = req.body[field];
-      }
-    }
-
-    await user.save();
-    res.status(200).json(user);
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
+    res.json({ user: updatedUser });
   } catch (err) {
-    console.error('❌ Error updating user:', err.message); // <-- Add this
-    res.status(500).json({ message: 'Server Error', error: err.message }); // <-- Send error
+    res.status(500).json({ message: 'Error updating profile' });
   }
 };
 
-
-
-exports.getFilteredAlumni = async (req, res) => {
+// GET /users/alumni (fetch all alumni with filters)
+const getAllAlumni = async (req, res) => {
   try {
     const { name, jobTitle, company } = req.query;
+    const filter = { userType: 'alumni' };
 
-    let query = { role: 'alumni' };
+    if (name) filter.name = new RegExp(name, 'i');
+    if (jobTitle) filter.jobTitle = new RegExp(jobTitle, 'i');
+    if (company) filter.company = new RegExp(company, 'i');
 
-    if (name) query.name = { $regex: name, $options: 'i' };
-    if (jobTitle) query.jobTitle = { $regex: jobTitle, $options: 'i' };
-    if (company) query.company = { $regex: company, $options: 'i' };
-
-    const alumni = await User.find(query).select('-password');
+    const alumni = await User.find(filter);
     res.json(alumni);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch alumni' });
+    res.status(500).json({ message: 'Error fetching alumni list' });
   }
+};
+
+// GET /users/alumni/:id (fetch one alumni by ID)
+const getAlumniById = async (req, res) => {
+  try {
+    const alumni = await User.findById(req.params.id);
+    if (!alumni || alumni.userType !== 'alumni') {
+      return res.status(404).json({ message: 'Alumni not found' });
+    }
+    res.json(alumni);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching alumni profile' });
+  }
+};
+
+module.exports = {
+  getProfile,
+  createProfile,
+  updateProfile,
+  getAllAlumni,
+  getAlumniById
 };

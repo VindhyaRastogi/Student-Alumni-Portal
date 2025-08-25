@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Register.css';
 
 const Register = () => {
@@ -8,9 +9,10 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    role: 'student', // default role
+    userType: 'student', // ✅ Changed from role → userType
   });
 
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -22,11 +24,29 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, formData);
-      console.log('Registration Success:', res.data);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/register`,
+        formData
+      );
+      const { user, token } = res.data;
 
-      alert('Registration successful! Please login.');
-      navigate('/');
+      console.log('Registration Success:', user);
+
+      // ✅ Save user to AuthContext and localStorage
+      login(user);
+      localStorage.setItem('token', token);
+      localStorage.setItem('userType', user.userType); // ✅ Changed to userType
+
+      alert('Registration successful!');
+
+      // ✅ Redirect based on userType
+      if (user.userType === 'student') {
+        navigate('/student/dashboard/');
+      } else if (user.userType === 'alumni') {
+        navigate('/alumni/dashboard/');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Registration Error:', err.response?.data || err.message);
       alert('Registration failed. Try a different email or check your input.');
@@ -62,8 +82,8 @@ const Register = () => {
           required
         />
         <select
-          name="role"
-          value={formData.role}
+          name="userType" // ✅ Changed from role → userType
+          value={formData.userType}
           onChange={handleChange}
           required
         >

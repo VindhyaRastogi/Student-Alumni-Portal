@@ -40,7 +40,7 @@
   background-color: #006daa;
 }
 
-.register-link {
+.register-link a {
   margin-top: 1rem;
   text-align: center;
   font-size: 0.95rem;
@@ -54,5 +54,38 @@
 
 .register-link a:hover {
   text-decoration: underline;
+}
+
+
+
+/* Role selection buttons inside login-container */
+.login-container .segmented {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.login-container .segmented .seg {
+  flex: 1;
+  padding: 0.6rem 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fefcfb;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  text-align: center;
+}
+
+.login-container .segmented .seg.active {
+  background-color: #1282a2;
+  color: #000000;
+  border-color: #1282a2;
+}
+
+.login-container .segmented .seg:hover {
+  background-color: #006daa;
+  color: #000000;
+  border-color: #006daa;
 }
 

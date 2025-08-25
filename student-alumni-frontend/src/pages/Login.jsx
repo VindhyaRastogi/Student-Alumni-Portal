@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
@@ -20,24 +19,32 @@ const Login = () => {
         password
       });
 
-      const { user, token } = res.data;
+      let { user, token } = res.data;
 
-      // Save token and role in localStorage or context
-      login(res.data); // Assuming your context handles token/user
-      localStorage.setItem('role', user.role); // optional for Navbar access
+      // ✅ Make sure we always use `userType` from backend instead of `role`
+      const role = user.userType || user.role;
+      user = { ...user, role };
 
-      // Redirect based on role
-      if (user.role === 'student') {
-  navigate('/student/profile/');
-} else if (user.role === 'alumni') {
-  navigate('/alumni/profile/' );
-} else {
+      // ✅ Save token and user in localStorage for later API requests
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', role);
+
+      // ✅ Update AuthContext
+      login(user);
+
+      // ✅ Redirect based on role
+      if (role === 'student') {
+        navigate('/student/dashboard/');
+      } else if (role === 'alumni') {
+        navigate('/alumni/dashboard/');
+      } else {
         navigate('/');
       }
+
     } catch (err) {
       console.error('Login failed:', err.response?.data.message || err.message);
-alert(err.response?.data.message || 'Login failed');
-
+      alert(err.response?.data.message || 'Login failed');
     }
   };
 
@@ -62,8 +69,8 @@ alert(err.response?.data.message || 'Login failed');
         <button type="submit">Login</button>
       </form>
       <div className="register-link">
-      <p>Don't have an account? <Link to="/register">Register</Link></p>
-    </div>
+        <p>Don't have an account? <Link to="/register">Register</Link></p>
+      </div>
     </div>
   );
 };

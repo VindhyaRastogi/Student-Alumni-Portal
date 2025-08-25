@@ -1,30 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import './Navbar.css'; // ✅ import the CSS
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import './Navbar.css';
 
 const Navbar = () => {
-  const [role, setRole] = useState(null);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedRole = localStorage.getItem('role');
-    setRole(storedRole);
-  }, []);
+  if (!user) return null; // Don't show navbar if not logged in
 
   const handleLogout = () => {
+    logout();
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     navigate('/');
   };
 
-  if (!role) return null;
+  const role = user.userType || user.role;
 
   return (
     <div className="navbar">
       <div className="navbar-left">
-        <Link to={role === 'student' ? '/student/dashboard' : '/alumni/dashboard'}>Dashboard</Link>
+        <Link to={role === 'student' ? '/student/dashboard' : '/alumni/dashboard'}>
+          Dashboard
+        </Link>
 
-        <Link to={role === 'student' ? '/student/profile' : '/alumni/profile'}>Your Profile</Link>
+        <Link to={role === 'student' ? '/student/profile' : '/alumni/profile'}>
+          Your Profile
+        </Link>
 
         {role === 'student' && (
           <>
