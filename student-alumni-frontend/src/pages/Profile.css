@@ -7,7 +7,15 @@
   border: 2px solid #034078;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+/* Make sure labels are visible */
+.profile-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #034078; /* dark blue for contrast */
+  font-size: 14px;
 }
 
 /* Heading */
@@ -41,7 +49,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #1282a2;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Degree block */
