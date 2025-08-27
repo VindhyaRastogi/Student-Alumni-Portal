@@ -10,11 +10,7 @@ const Home = () => {
 
   // Background slider images — drop your files in /public/hero/...
   const slides = useMemo(
-    () => [
-      "/hero/slide1.jpg",
-      "/hero/slide2.jpg",
-      "/hero/slide3.jpg",
-    ],
+    () => ["/hero/slide1.jpg", "/hero/slide2.jpg", "/hero/slide3.jpg"],
     []
   );
 
@@ -35,7 +31,6 @@ const Home = () => {
 
   const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-  // ✅ Integrated your working Login.jsx logic
   const handleLogin = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -60,7 +55,6 @@ const Home = () => {
       if (userRole === "student") navigate("/student/dashboard");
       else if (userRole === "alumni") navigate("/alumni/dashboard");
       else navigate("/");
-
     } catch (err) {
       console.error("Login failed:", err.response?.data.message || err.message);
       setError(err.response?.data.message || "Login failed");
@@ -87,8 +81,8 @@ const Home = () => {
       {/* Top bar */}
       <header className="topbar">
         <div className="brand">
-          <span className="title">Student‑Alumni Portal</span>
-          <span className="subtitle">IIIT‑Delhi</span>
+          <span className="title">Student-Alumni Portal</span>
+          <span className="subtitle">IIIT-Delhi</span>
         </div>
         <nav className="top-links">
           <a href="#features">Features</a>
@@ -101,69 +95,72 @@ const Home = () => {
         <section className="hero-copy">
           <h1>Connect. Collaborate. Grow.</h1>
           <p>
-            A single place for students and alumni to chat in real‑time, schedule
-            meetings, and discover mentors & opportunities.
+            A single place for students and alumni to chat in real-time,
+            schedule meetings, and discover mentors & opportunities.
           </p>
           <div className="hero-cta">
-            <a className="btn btn-outline" href="#features">Explore Features</a>
-            <Link className="btn btn-solid" to="/register">Register</Link>
+            <a className="btn btn-outline" href="#features">
+              Explore Features
+            </a>
+            <Link className="btn btn-solid" to="/register">
+              Register
+            </Link>
           </div>
         </section>
 
         <section className="login-container">
-  <h2>Login</h2>
-  <form onSubmit={handleLogin} noValidate>
-    <label>I am a</label>
-    <div className="segmented">
-      <button
-        type="button"
-        className={role === "student" ? "seg active" : "seg"}
-        onClick={() => setRole("student")}
-      >
-        Student
-      </button>
-      <button
-        type="button"
-        className={role === "alumni" ? "seg active" : "seg"}
-        onClick={() => setRole("alumni")}
-      >
-        Alumni
-      </button>
-    </div>
+          <h2>Login</h2>
+          <form onSubmit={handleLogin} noValidate>
+            <label>I am a</label>
+            <div className="segmented">
+              <button
+                type="button"
+                className={role === "student" ? "seg active" : "seg"}
+                onClick={() => setRole("student")}
+              >
+                Student
+              </button>
+              <button
+                type="button"
+                className={role === "alumni" ? "seg active" : "seg"}
+                onClick={() => setRole("alumni")}
+              >
+                Alumni
+              </button>
+            </div>
 
-    <input
-      type="email"
-      placeholder="Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      autoComplete="email"
-      required
-    />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
 
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      autoComplete="current-password"
-      required
-    />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
 
-    {error && <div className="error">{error}</div>}
+            {error && <div className="error">{error}</div>}
 
-    <button type="submit" disabled={busy}>
-      {busy ? "Signing in..." : "Login"}
-    </button>
+            <button type="submit" disabled={busy}>
+              {busy ? "Signing in..." : "Login"}
+            </button>
 
-    <div className="register-link">
-      <p>
-        New here? <Link to={`/register?role=${role}`}>Register First !</Link>
-      </p>
-    </div>
-  </form>
-</section>
-
-
+            <div className="register-link">
+              <p>
+                New here?{" "}
+                <Link to={`/register?role=${role}`}>Register First !</Link>
+              </p>
+            </div>
+          </form>
+        </section>
       </main>
 
       {/* Features */}
@@ -172,34 +169,44 @@ const Home = () => {
         <div className="cards">
           <article className="card fade-up">
             <div className="icon i-chat" aria-hidden />
-            <h4>Real‑Time Chatting</h4>
-            <p>Instantly message students and alumni with delivery & read status.</p>
-            <Link className="link" to="/chat">Open Chat</Link>
+            <h4>Real-Time Chatting</h4>
+            <p>
+              Instantly message students and alumni with delivery & read status.
+            </p>
+            <Link className="link" to="/chat">
+              Open Chat
+            </Link>
           </article>
           <article className="card fade-up" style={{ animationDelay: "120ms" }}>
             <div className="icon i-meet" aria-hidden />
             <h4>Meetings</h4>
             <p>Publish slots, book sessions, and sync with your calendar.</p>
-            <Link className="link" to="/meetings">Schedule a Meeting</Link>
+            <Link className="link" to="/meetings">
+              Schedule a Meeting
+            </Link>
           </article>
           <article className="card fade-up" style={{ animationDelay: "240ms" }}>
             <div className="icon i-list" aria-hidden />
             <h4>View Alumni Lists</h4>
             <p>Search alumni by name, company, field, location and batch.</p>
-            <Link className="link" to="/alumni">Browse Alumni</Link>
+            <Link className="link" to="/alumni">
+              Browse Alumni
+            </Link>
           </article>
         </div>
       </section>
 
       {/* About / Footer */}
       <section id="about" className="about">
-        <h2 className="sec-title">Made for the IIIT‑Delhi community</h2>
+        <h2 className="sec-title">Made for the IIIT-Delhi community</h2>
         <p className="about-text">
           This portal bridges the gap between current students and alumni —
           enabling mentorship, collaboration, and career growth through modern,
-          privacy‑first tools.
+          privacy-first tools.
         </p>
-        <footer className="footer">© {new Date().getFullYear()} IIIT‑Delhi • Student‑Alumni Portal</footer>
+        <footer className="footer">
+          © {new Date().getFullYear()} IIIT-Delhi • Student-Alumni Portal
+        </footer>
       </section>
     </div>
   );
