@@ -1,5 +1,5 @@
 const express = require('express');
-const { saveAlumniProfile, getAlumniProfile } = require('../controllers/alumniController');
+const { saveAlumniProfile, getAlumniProfile,   getAllAlumni } = require('../controllers/alumniController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const router = express.Router();
@@ -15,6 +15,6 @@ router.get('/profile', (req, res, next) => {
   console.log("✅ Alumni /profile route hit");
   next();
 }, protect, getAlumniProfile);
-
+router.get("/", getAllAlumni);
 
 module.exports = router;

@@ -8,13 +8,14 @@ import Meeting from './pages/Meeting';
 import AlumniSlots from './pages/AlumniSlots';
 import AdminUserList from './admin/AdminUserList';
 import AlumniProfile from './pages/AlumniProfile';
-import AlumniProfileView from './pages/AlumniProfileView';  // ✅ new import
+import AlumniProfileView from './pages/AlumniProfileView';  
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import StudentDashboard from './pages/student/StudentDashboard';
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import Navbar from './components/Navbar';
 import StudentProfile from './pages/StudentProfile';
+import StudentProfileView from './pages/StudentProfileView';   // ✅ new import
 
 const App = () => {
   const location = useLocation();
@@ -36,10 +37,15 @@ const App = () => {
           path="/student/dashboard"
           element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
         />
-        <Route
-          path="/student/profile"
-          element={<ProtectedRoute><StudentProfile /></ProtectedRoute>}
-        />
+        {/* Student Routes */}
+<Route
+  path="/student/profile"
+  element={<ProtectedRoute><StudentProfileView /></ProtectedRoute>}
+/>
+<Route
+  path="/student/edit-profile"
+  element={<ProtectedRoute><StudentProfile /></ProtectedRoute>}
+/>
         <Route
           path="/student/alumni"
           element={<ProtectedRoute><AlumniList /></ProtectedRoute>}
@@ -55,11 +61,11 @@ const App = () => {
           element={<ProtectedRoute><AlumniDashboard /></ProtectedRoute>}
         />
         <Route
-          path="/alumni/edit-profile"   // ✅ renamed for clarity
+          path="/alumni/edit-profile"
           element={<ProtectedRoute><AlumniProfile /></ProtectedRoute>}
         />
         <Route
-          path="/alumni/view-profile"   // ✅ new view page
+          path="/alumni/view-profile"
           element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}
         />
         <Route
@@ -84,7 +90,7 @@ const App = () => {
         {/* Profile by ID */}
         <Route
           path="/alumni/:id"
-          element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}  // ✅ use View for public profile
+          element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}
         />
       </Routes>
     </>

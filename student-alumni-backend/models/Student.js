@@ -1,16 +1,21 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  fullName: String,
-  email: String,
-  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true
+  },
+  fullName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  gender: String,
   phone: String,
   degree: String,
   specialization: String,
   batch: String,
   linkedin: String,
   profilePicture: String
-}, { timestamps: true });
+});
 
-module.exports = mongoose.model('Student', studentSchema);
+module.exports = mongoose.model("Student", studentSchema);

@@ -1,3 +1,4 @@
+// src/pages/AlumniList.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -13,7 +14,8 @@ const AlumniList = () => {
   const [filters, setFilters] = useState({
     name: '',
     jobTitle: '',
-    company: ''
+    company: '',
+    areasOfInterest: ''   // ✅ new filter
   });
 
   const fetchAlumni = async () => {
@@ -27,13 +29,24 @@ const AlumniList = () => {
       );
       setAlumni(res.data);
     } catch (err) {
+      console.error(err);
       alert('Error fetching alumni');
     }
   };
 
   useEffect(() => {
-    fetchAlumni();
-  }, []);
+  const fetchAlumni = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/alumni");
+      const data = await res.json();
+      setAlumni(data);
+    } catch (err) {
+      console.error("Error fetching alumni list:", err);
+    }
+  };
+  fetchAlumni();
+}, []);
+
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -42,10 +55,6 @@ const AlumniList = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchAlumni();
-  };
-
-  const handleMeetingRequest = (alumniId) => {
-    navigate(`/meetings?alumniId=${alumniId}`);
   };
 
   return (
@@ -74,6 +83,21 @@ const AlumniList = () => {
           value={filters.company}
           onChange={handleChange}
         />
+
+        {/* ✅ New Area of Interest filter */}
+        <select
+          name="areasOfInterest"
+          value={filters.areasOfInterest}
+          onChange={handleChange}
+        >
+          <option value="">Filter by Area of Interest</option>
+          <option value="AI/ML">AI/ML</option>
+          <option value="Data Science">Data Science</option>
+          <option value="Cybersecurity">Cybersecurity</option>
+          <option value="Software Development">Software Development</option>
+          <option value="Entrepreneurship">Entrepreneurship</option>
+        </select>
+
         <button type="submit">Filter</button>
       </form>
 
@@ -83,32 +107,27 @@ const AlumniList = () => {
         <div className="alumni-list">
           {alumni.map((a) => (
             <div className="alumni-card" key={a._id}>
-              {/* Profile Picture */}
-              {a.profilePicture && (
-                <img
-                  src={a.profilePicture}
-                  alt={`${a.name} profile`}
-                  className="alumni-profile-pic"
-                  style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', marginBottom: '1rem' }}
-                />
-              )}
+              {/* ✅ Only Name + Profile Picture */}
+              <img
+                src={
+                  a.profilePicture
+                    ? `${import.meta.env.VITE_API_BASE_URL}/${a.profilePicture}`
+                    : '/default-avatar.png'
+                }
+                alt={`${a.fullName} profile`}
+                className="alumni-profile-pic"
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  marginBottom: '1rem',
+                }}
+              />
+              <h3>{a.fullName}</h3>
 
-              <h3>{a.name}</h3>
-              <p><strong>Email:</strong> {a.email}</p>
-              <p><strong>Degree:</strong> {a.degree || 'N/A'}</p>
-              <p><strong>Specialization:</strong> {a.specialization || 'N/A'}</p>
-              <p><strong>Batch:</strong> {a.batch || 'N/A'}</p>
-              <p><strong>Organization:</strong> {a.organization || 'N/A'}</p>
-              <p><strong>Work Role:</strong> {a.workRole || 'N/A'}</p>
-              <p><strong>Location:</strong> {`${a.city || ''}${a.city && a.state ? ', ' : ''}${a.state || ''}${(a.city || a.state) && a.country ? ', ' : ''}${a.country || ''}` || 'N/A'}</p>
-              <p><strong>Bio:</strong> {a.bio || 'N/A'}</p>
-              <p><strong>Job Title:</strong> {a.jobTitle || 'N/A'}</p>
-              <p><strong>Company:</strong> {a.company || 'N/A'}</p>
-
+              {/* View Profile Button */}
               <div className="alumni-actions">
-                <button onClick={() => handleMeetingRequest(a._id)}>
-                  Request Meeting
-                </button>
                 <Link to={`/alumni/${a._id}`} className="view-link">
                   View Profile
                 </Link>

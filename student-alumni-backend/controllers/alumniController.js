@@ -35,5 +35,14 @@ const getAlumniProfile = async (req, res) => {
   }
 };
 
+const getAllAlumni = async (req, res) => {
+  try {
+    const alumni = await Alumni.find().select("-password"); // password hide
+    res.status(200).json(alumni);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching alumni list", error: error.message });
+  }
+};
 
-module.exports = { saveAlumniProfile, getAlumniProfile };
+
+module.exports = { saveAlumniProfile, getAlumniProfile,   getAllAlumni };
