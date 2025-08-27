@@ -20,7 +20,7 @@ const AlumniDashboard = () => {
     },
     {
       title: "Your Profile",
-      link: "/alumni/edit-profile",
+      link: "/alumni/view-profile",
       img: "https://cdn-icons-png.flaticon.com/512/1077/1077012.png",
     },
     {

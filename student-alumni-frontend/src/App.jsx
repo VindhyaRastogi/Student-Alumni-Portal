@@ -16,24 +16,6 @@ import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import Navbar from './components/Navbar';
 import StudentProfile from './pages/StudentProfile';
 import StudentProfileView from './pages/StudentProfileView';   // ✅ new import
-import { Routes, Route, useLocation } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Home from "./pages/Home";
-import Dashboard from "./admin/Dashboard";
-import AlumniList from "./pages/AlumniList";
-import Meeting from "./pages/Meeting";
-import AlumniSlots from "./pages/AlumniSlots";
-import AdminUserList from "./admin/AdminUserList";
-import AlumniProfile from "./pages/AlumniProfile";
-import AlumniProfileView from "./pages/AlumniProfileView"; // ✅ new import
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import StudentDashboard from "./pages/student/StudentDashboard";
-import AlumniDashboard from "./pages/alumni/AlumniDashboard";
-import Navbar from "./components/Navbar";
-import StudentProfile from "./pages/StudentProfile";
-
 const App = () => {
   const location = useLocation();
   // Hide navbar only on landing Home page and Register page
