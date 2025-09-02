@@ -20,20 +20,30 @@ const StudentProfileView = () => {
         );
 
         // ✅ fix relative profile picture path
-        if (res.data.profilePicture && !res.data.profilePicture.startsWith("http")) {
+        if (
+          res.data.profilePicture &&
+          !res.data.profilePicture.startsWith("http")
+        ) {
           res.data.profilePicture = `http://localhost:5000/${res.data.profilePicture}`;
         }
 
         setProfile(res.data);
       } catch (err) {
-        console.error("Error fetching student profile:", err.response?.data || err.message);
+        console.error(
+          "Error fetching student profile:",
+          err.response?.data || err.message
+        );
       }
     };
     fetchProfile();
   }, []);
 
   if (!profile)
-    return <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading profile...</p>;
+    return (
+      <p style={{ textAlign: "center", marginTop: "2rem" }}>
+        Loading profile...
+      </p>
+    );
 
   return (
     <div className="profile-container">
@@ -47,12 +57,24 @@ const StudentProfileView = () => {
       </div>
 
       <div className="profile-info">
-        <p><strong>Full Name:</strong> {profile.fullName}</p>
-        <p><strong>Email:</strong> {profile.email}</p>
-        <p><strong>Gender:</strong> {profile.gender}</p>
-        <p><strong>Degree:</strong> {profile.degree}</p>
-        <p><strong>Specialization:</strong> {profile.specialization}</p>
-        <p><strong>Batch:</strong> {profile.batch}</p>
+        <p>
+          <strong>Full Name:</strong> {profile.fullName}
+        </p>
+        <p>
+          <strong>Email:</strong> {profile.email}
+        </p>
+        <p>
+          <strong>Gender:</strong> {profile.gender}
+        </p>
+        <p>
+          <strong>Degree:</strong> {profile.degree}
+        </p>
+        <p>
+          <strong>Specialization:</strong> {profile.specialization}
+        </p>
+        <p>
+          <strong>Batch:</strong> {profile.batch}
+        </p>
         <p>
           <strong>LinkedIn:</strong>{" "}
           <a href={profile.linkedin} target="_blank" rel="noreferrer">
@@ -62,11 +84,10 @@ const StudentProfileView = () => {
       </div>
 
       <div className="button-container">
-  <button onClick={() => navigate("/student/edit-profile")}>
-    Edit Profile
-  </button>
-</div>
-
+        <button onClick={() => navigate("/student/edit-profile")}>
+          Edit Profile
+        </button>
+      </div>
     </div>
   );
 };

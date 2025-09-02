@@ -52,7 +52,9 @@ const AlumniProfile = () => {
 
           if (res.data.profilePicture) {
             setPreviewImage(
-              `${import.meta.env.VITE_API_BASE_URL}/${res.data.profilePicture}`
+              `${import.meta.env.VITE_API_BASE_URL}/uploads/${
+                res.data.profilePicture
+              }`
             );
           }
         }
@@ -499,7 +501,15 @@ const AlumniProfile = () => {
           onChange={handleChange}
         />
         {previewImage && (
-          <img src={previewImage} alt="Preview" className="profile-preview" />
+          <div className="profile-picture">
+            <img
+              src={previewImage}
+              alt="Profile"
+              onError={(e) => {
+                e.target.src = "/default-avatar.png"; // fallback if broken
+              }}
+            />
+          </div>
         )}
 
         <button type="submit">Save Profile</button>
