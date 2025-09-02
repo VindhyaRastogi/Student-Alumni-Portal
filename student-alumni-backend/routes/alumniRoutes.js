@@ -1,5 +1,5 @@
 const express = require('express');
-const { saveAlumniProfile, getAlumniProfile,   getAllAlumni } = require('../controllers/alumniController');
+const { saveAlumniProfile, getAlumniProfile, getAlumniList } = require('../controllers/alumniController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const router = express.Router();
@@ -10,11 +10,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// ✅ Save or update alumni profile
 router.post('/profile', protect, upload.single('profilePicture'), saveAlumniProfile);
-router.get('/profile', (req, res, next) => {
-  console.log("✅ Alumni /profile route hit");
-  next();
-}, protect, getAlumniProfile);
-router.get("/", getAllAlumni);
+
+// ✅ Get logged-in alumni profile
+router.get('/profile', protect, getAlumniProfile);
+
+// ✅ Get alumni list (with filters)
+router.get("/", protect, getAlumniList);
 
 module.exports = router;

@@ -65,10 +65,40 @@ const getAlumniById = async (req, res) => {
   }
 };
 
+const getAlumniList = async (req, res) => {
+  try {
+    const { jobTitle, company, areasOfInterest, location, name } = req.query;
+
+    let query = { userType: "alumni" };
+
+    if (name) {
+      query.fullName = { $regex: name, $options: "i" };
+    }
+    if (jobTitle) {
+      query.jobTitle = { $regex: jobTitle, $options: "i" };
+    }
+    if (company) {
+      query.company = { $regex: company, $options: "i" };
+    }
+    if (areasOfInterest) {
+      query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
+    }
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+
+    const alumni = await User.find(query).select("-password");
+    res.json(alumni);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching alumni list", error });
+  }
+};
+
 module.exports = {
   getProfile,
   createProfile,
   updateProfile,
   getAllAlumni,
-  getAlumniById
+  getAlumniById,
+  getAlumniList
 };

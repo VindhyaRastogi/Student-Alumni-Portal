@@ -4,7 +4,8 @@ const {
   createProfile,
   updateProfile,
   getAllAlumni,
-  getAlumniById
+  getAlumniById,
+  getAlumniList
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
@@ -29,5 +30,6 @@ router.post('/', protect, upload.single('profilePicture'), createProfile);
 router.put('/:id', protect, upload.single('profilePicture'), updateProfile);
 router.get('/alumni', protect, getAllAlumni);
 router.get('/alumni/:id', protect, getAlumniById);
+// router.get("/alumni", getAlumniList);
 
 module.exports = router;
