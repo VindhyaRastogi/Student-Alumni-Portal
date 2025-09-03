@@ -3,7 +3,6 @@ const {
   getProfile,
   createProfile,
   updateProfile,
-  getAllAlumni,
   getAlumniById,
   getAlumniList
 } = require('../controllers/userController');
@@ -28,8 +27,7 @@ const upload = multer({ storage });
 router.get('/me', protect, getProfile);
 router.post('/', protect, upload.single('profilePicture'), createProfile);
 router.put('/:id', protect, upload.single('profilePicture'), updateProfile);
-router.get('/alumni', protect, getAllAlumni);
+router.get('/alumni', protect, getAlumniList);  
 router.get('/alumni/:id', protect, getAlumniById);
-// router.get("/alumni", getAlumniList);
 
 module.exports = router;

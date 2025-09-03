@@ -1,5 +1,5 @@
 const express = require('express');
-const { saveAlumniProfile, getAlumniProfile, getAlumniList } = require('../controllers/alumniController');
+const { saveAlumniProfile, getAlumniProfile, getAlumniList, getAlumniById } = require('../controllers/alumniController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const router = express.Router();
@@ -18,5 +18,9 @@ router.get('/profile', protect, getAlumniProfile);
 
 // ✅ Get alumni list (with filters)
 router.get("/", protect, getAlumniList);
+
+// ✅ Get single alumni by ID
+router.get("/:id", protect, getAlumniById);
+
 
 module.exports = router;

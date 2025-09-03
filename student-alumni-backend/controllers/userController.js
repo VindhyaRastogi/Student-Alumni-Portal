@@ -35,23 +35,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// GET /users/alumni (fetch all alumni with filters)
-const getAllAlumni = async (req, res) => {
-  try {
-    const { name, jobTitle, company } = req.query;
-    const filter = { userType: 'alumni' };
-
-    if (name) filter.name = new RegExp(name, 'i');
-    if (jobTitle) filter.jobTitle = new RegExp(jobTitle, 'i');
-    if (company) filter.company = new RegExp(company, 'i');
-
-    const alumni = await User.find(filter);
-    res.json(alumni);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching alumni list' });
-  }
-};
-
 // GET /users/alumni/:id (fetch one alumni by ID)
 const getAlumniById = async (req, res) => {
   try {
@@ -65,32 +48,28 @@ const getAlumniById = async (req, res) => {
   }
 };
 
+// GET /users/alumni (fetch all alumni with filters)
 const getAlumniList = async (req, res) => {
   try {
-    const { jobTitle, company, areasOfInterest, location, name } = req.query;
-
+    const { name, company, jobTitle, areasOfInterest, location } = req.query;
     let query = { userType: "alumni" };
 
-    if (name) {
-      query.fullName = { $regex: name, $options: "i" };
-    }
-    if (jobTitle) {
-      query.jobTitle = { $regex: jobTitle, $options: "i" };
-    }
-    if (company) {
-      query.company = { $regex: company, $options: "i" };
-    }
-    if (areasOfInterest) {
-      query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
-    }
+    if (name) query.name = { $regex: name, $options: "i" };
+    if (company) query.organization = { $regex: company, $options: "i" }; // ✅ fixed: schema uses organization
+    if (jobTitle) query.jobTitle = { $regex: jobTitle, $options: "i" };
+    if (areasOfInterest) query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
     if (location) {
-      query.location = { $regex: location, $options: "i" };
+      query.$or = [
+        { "location.city": { $regex: location, $options: "i" } },
+        { "location.state": { $regex: location, $options: "i" } },
+        { "location.country": { $regex: location, $options: "i" } },
+      ];
     }
 
     const alumni = await User.find(query).select("-password");
     res.json(alumni);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching alumni list", error });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching alumni", error: err.message });
   }
 };
 
@@ -98,7 +77,6 @@ module.exports = {
   getProfile,
   createProfile,
   updateProfile,
-  getAllAlumni,
   getAlumniById,
-  getAlumniList
+  getAlumniList, // ✅ only one alumni list function
 };

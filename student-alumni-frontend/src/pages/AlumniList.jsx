@@ -1,36 +1,33 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import "./AlumniList.css";
 
 const AlumniList = () => {
-  const [alumni, setAlumni] = useState([]);
   const [filters, setFilters] = useState({
     name: "",
-    jobTitle: "",
     company: "",
-    areasOfInterest: "",
+    jobTitle: "",
     location: "",
+    areasOfInterest: "",
   });
+  const [alumni, setAlumni] = useState([]);
 
-  // Fetch alumni
   const fetchAlumni = async () => {
-  try {
-    const baseURL = import.meta.env.VITE_API_BASE_URL;
-    console.log("Requesting:", `${baseURL}/users/alumni`, filters);
-
-    const token = localStorage.getItem("token");
-
-    const { data } = await axios.get(`${baseURL}/users/alumni`, {
-      params: filters,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-
-    setAlumni(data);
-  } catch (error) {
-    console.error("Error fetching alumni:", error);
-  }
-};
-
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/alumni`, // ✅ updated API
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: filters,
+        }
+      );
+      setAlumni(res.data);
+    } catch (err) {
+      console.error("Error fetching alumni:", err);
+    }
+  };
 
   useEffect(() => {
     fetchAlumni();
@@ -40,42 +37,51 @@ const AlumniList = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const handleFilter = () => {
+  const handleSearch = (e) => {
+    e.preventDefault();
     fetchAlumni();
   };
 
   return (
     <div className="alumni-list-container">
-      <h2>Alumni Directory</h2>
+      <h2>Explore Alumni</h2>
 
-      {/* 🔹 Filter Section */}
-      <div className="filter-section">
-        <input type="text" name="name" placeholder="Search by name" onChange={handleChange} />
-        <input type="text" name="jobTitle" placeholder="Job Title" onChange={handleChange} />
-        <input type="text" name="company" placeholder="Company" onChange={handleChange} />
-        <input type="text" name="areasOfInterest" placeholder="Area of Interest" onChange={handleChange} />
-        <input type="text" name="location" placeholder="Location" onChange={handleChange} />
-        <button onClick={handleFilter}>Apply Filters</button>
-      </div>
+      {/* Filter Form */}
+      <form onSubmit={handleSearch} className="filter-form">
+        <input name="name" placeholder="Name" onChange={handleChange} />
+        <input name="company" placeholder="Company / Organization" onChange={handleChange} />
+        <input name="jobTitle" placeholder="Position" onChange={handleChange} />
+        <input name="location" placeholder="Location" onChange={handleChange} />
+        <select name="areasOfInterest" onChange={handleChange}>
+          <option value="">All Interests</option>
+          <option value="AI/ML">AI/ML</option>
+          <option value="Data Science">Data Science</option>
+          <option value="Cybersecurity">Cybersecurity</option>
+          <option value="Software Development">Software Development</option>
+          <option value="Entrepreneurship">Entrepreneurship</option>
+        </select>
+        <button type="submit">Search</button>
+      </form>
 
-      {/* 🔹 Alumni List */}
-      <div className="alumni-list">
-        {alumni.length > 0 ? (
-          alumni.map((alum) => (
-            <div key={alum._id} className="alumni-card">
-              <img
-                src={alum.profilePicture || "https://via.placeholder.com/100"}
-                alt={alum.fullName}
-              />
-              <h3>{alum.fullName}</h3>
-              <p>{alum.jobTitle} at {alum.company}</p>
-              <p>{alum.location}</p>
-              <p><strong>Interests:</strong> {alum.areasOfInterest?.join(", ")}</p>
-            </div>
-          ))
-        ) : (
-          <p>No alumni found.</p>
-        )}
+      {/* Alumni Cards */}
+      <div className="alumni-cards">
+        {alumni.map((a) => (
+          <div className="alumni-card" key={a._id}>
+            <img
+              src={
+                a.profilePicture
+                  ? `${import.meta.env.VITE_API_BASE_URL}/uploads/${a.profilePicture}`
+                  : "/default-avatar.png"
+              }
+              alt={a.fullName}
+            />
+            <h3>{a.fullName}</h3>
+            <p>{a.jobTitle} @ {a.company}</p>
+            <p>{a.location?.city}, {a.location?.country}</p>
+            <p><strong>Interests:</strong> {a.areasOfInterest}</p>
+            <Link to={`/alumni/${a._id}`}>View Profile</Link>
+          </div>
+        ))}
       </div>
     </div>
   );
