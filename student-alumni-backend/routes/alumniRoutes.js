@@ -22,5 +22,17 @@ router.get("/", protect, getAlumniList);
 // ✅ Get single alumni by ID
 router.get("/:id", protect, getAlumniById);
 
+// Get alumni by ID
+router.get("/:id", protect, async (req, res) => {
+  try {
+    const alumni = await Alumni.findById(req.params.id);
+    if (!alumni) return res.status(404).json({ message: "Alumni not found" });
+    res.json(alumni);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching alumni profile" });
+  }
+});
+
+
 
 module.exports = router;

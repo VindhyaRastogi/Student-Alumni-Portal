@@ -16,6 +16,9 @@ import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import Navbar from './components/Navbar';
 import StudentProfile from './pages/StudentProfile';
 import StudentProfileView from './pages/StudentProfileView';   // ✅ new import
+import AlumniPublicProfile from "./pages/AlumniPublicProfile";
+
+
 const App = () => {
   const location = useLocation();
   // Hide navbar only on landing Home page and Register page
@@ -132,6 +135,8 @@ const App = () => {
             </ProtectedAdminRoute>
           }
         />
+        
+<Route path="/alumni/:id" element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>} />
         {/* Profile by ID */}
         <Route
           path="/alumni/:id"

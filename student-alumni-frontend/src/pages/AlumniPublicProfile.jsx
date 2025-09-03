@@ -1,0 +1,77 @@
+// src/pages/AlumniPublicProfile.jsx
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "./AlumniProfileView.css"; // reuse the same styles
+
+const AlumniPublicProfile = () => {
+  const { id } = useParams();   // ✅ get alumni id from URL
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/alumni/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        let data = res.data;
+
+        // fix image path
+        if (data.profilePicture && !data.profilePicture.startsWith("http")) {
+          data.profilePicture = `${import.meta.env.VITE_API_BASE_URL}/uploads/${data.profilePicture}`;
+        } else if (!data.profilePicture) {
+          data.profilePicture = "/default-avatar.png";
+        }
+
+        setProfile(data);
+      } catch (err) {
+        console.error("Error fetching alumni profile:", err);
+      }
+    };
+
+    fetchAlumni();
+  }, [id]);
+
+  if (!profile) return <p className="loading">Loading profile...</p>;
+
+  return (
+    <div className="profile-container">
+      <h2>Alumni Profile</h2>
+
+      <div className="profile-picture">
+        <img
+          src={profile.profilePicture}
+          alt="Profile"
+          onError={(e) => (e.target.src = "/default-avatar.png")}
+        />
+      </div>
+
+      <p><strong>Full Name:</strong> {profile.fullName}</p>
+      <p><strong>Email:</strong> {profile.email}</p>
+      <p><strong>Gender:</strong> {profile.gender}</p>
+
+      <h3>Academic Qualifications</h3>
+      {profile.degrees?.map((deg, idx) => (
+        <div key={idx} className="degree-block">
+          <p><strong>Degree:</strong> {deg.degree}</p>
+          <p><strong>Specialization:</strong> {deg.specialization}</p>
+          <p><strong>Institute:</strong> {deg.institute}</p>
+          <p><strong>Batch:</strong> {deg.batch}</p>
+        </div>
+      ))}
+
+      <p><strong>Areas of Interest:</strong> {profile.areasOfInterest}</p>
+      <p><strong>Hours per Week:</strong> {profile.hoursPerWeek}</p>
+      <p><strong>Mentees Capacity:</strong> {profile.menteesCapacity}</p>
+      <p><strong>Preferred Contact:</strong> {profile.preferredContact}</p>
+      <p><strong>Job Title:</strong> {profile.jobTitle}</p>
+      <p><strong>Company:</strong> {profile.company}</p>
+      <p><strong>Location:</strong> {profile.location?.city}, {profile.location?.state}, {profile.location?.country}</p>
+    </div>
+  );
+};
+
+export default AlumniPublicProfile;
