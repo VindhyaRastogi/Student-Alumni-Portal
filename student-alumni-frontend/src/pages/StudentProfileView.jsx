@@ -12,12 +12,14 @@ const StudentProfileView = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return;
+console.log("🔑 Token:", token);
 
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+const res = await axios.get(
+  `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
+  { headers: { Authorization: `Bearer ${token}` } }
+);
+
+console.log("✅ Profile data:", res.data);
 
         // ✅ fix relative profile picture path
         if (

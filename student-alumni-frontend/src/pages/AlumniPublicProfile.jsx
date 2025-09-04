@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "./AlumniProfileView.css"; // reuse the same styles
+import "./AlumniProfileView.css"; // reuse same styles
 
 const AlumniPublicProfile = () => {
-  const { id } = useParams();   // ✅ get alumni id from URL
+  const { id } = useParams();
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAlumni = async () => {
@@ -19,7 +20,7 @@ const AlumniPublicProfile = () => {
 
         let data = res.data;
 
-        // fix image path
+        // ✅ Fix image path
         if (data.profilePicture && !data.profilePicture.startsWith("http")) {
           data.profilePicture = `${import.meta.env.VITE_API_BASE_URL}/uploads/${data.profilePicture}`;
         } else if (!data.profilePicture) {
@@ -29,13 +30,17 @@ const AlumniPublicProfile = () => {
         setProfile(data);
       } catch (err) {
         console.error("Error fetching alumni profile:", err);
+        setProfile(null);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAlumni();
   }, [id]);
 
-  if (!profile) return <p className="loading">Loading profile...</p>;
+  if (loading) return <p className="loading">Loading profile...</p>;
+  if (!profile) return <p className="loading">Alumni profile not found.</p>;
 
   return (
     <div className="profile-container">
@@ -69,7 +74,10 @@ const AlumniPublicProfile = () => {
       <p><strong>Preferred Contact:</strong> {profile.preferredContact}</p>
       <p><strong>Job Title:</strong> {profile.jobTitle}</p>
       <p><strong>Company:</strong> {profile.company}</p>
-      <p><strong>Location:</strong> {profile.location?.city}, {profile.location?.state}, {profile.location?.country}</p>
+      <p>
+        <strong>Location:</strong>{" "}
+        {profile.location?.city}, {profile.location?.state}, {profile.location?.country}
+      </p>
     </div>
   );
 };

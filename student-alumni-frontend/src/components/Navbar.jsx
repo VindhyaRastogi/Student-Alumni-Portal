@@ -24,7 +24,7 @@ const Navbar = () => {
           Dashboard
         </Link>
 
-        <Link to={role === 'student' ? '/student/profile' : '/alumni/profile'}>
+        <Link to={role === 'student' ? '/student/profile' : '/alumni/view-profile'}>
           Your Profile
         </Link>
 

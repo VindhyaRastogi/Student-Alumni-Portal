@@ -63,8 +63,18 @@ const getProfile = async (req, res) => {
     );
 
     if (!student) {
-      return res.status(404).json({ message: "Profile not found" });
-    }
+  return res.json({
+    fullName: req.user.name,
+    email: req.user.email,
+    gender: "",
+    degree: "",
+    specialization: "",
+    batch: "",
+    linkedin: "",
+    profilePicture: ""
+  });
+}
+
 
     res.json(student);
   } catch (err) {

@@ -15,13 +15,11 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import Navbar from './components/Navbar';
 import StudentProfile from './pages/StudentProfile';
-import StudentProfileView from './pages/StudentProfileView';   // ✅ new import
+import StudentProfileView from './pages/StudentProfileView';
 import AlumniPublicProfile from "./pages/AlumniPublicProfile";
-
 
 const App = () => {
   const location = useLocation();
-  // Hide navbar only on landing Home page and Register page
   const hideNavbar =
     location.pathname === "/" || location.pathname === "/register";
 
@@ -31,117 +29,68 @@ const App = () => {
 
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} /> {/* Landing page */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* Protected Student Routes */}
+
+        {/* Student Routes */}
         <Route
           path="/student/dashboard"
-          element={
-            <ProtectedRoute>
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
         />
-        {/* Student Routes */}
-<Route
-  path="/student/profile"
-  element={<ProtectedRoute><StudentProfileView /></ProtectedRoute>}
-/>
-<Route
-  path="/student/edit-profile"
-  element={<ProtectedRoute><StudentProfile /></ProtectedRoute>}
-/>
         <Route
           path="/student/profile"
-          element={
-            <ProtectedRoute>
-              <StudentProfile />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><StudentProfileView /></ProtectedRoute>}
+        />
+        <Route
+          path="/student/edit-profile"
+          element={<ProtectedRoute><StudentProfile /></ProtectedRoute>}
         />
         <Route
           path="/student/alumni"
-          element={
-            <ProtectedRoute>
-              <AlumniList />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><AlumniList /></ProtectedRoute>}
         />
         <Route
           path="/student/meetings"
-          element={
-            <ProtectedRoute>
-              <Meeting />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><Meeting /></ProtectedRoute>}
         />
-        {/* Protected Alumni Routes */}
+
+        {/* Alumni Routes */}
         <Route
           path="/alumni/dashboard"
-          element={
-            <ProtectedRoute>
-              <AlumniDashboard />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><AlumniDashboard /></ProtectedRoute>}
+        />
+        <Route
+          path="/alumni/view-profile"
+          element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}
         />
         <Route
           path="/alumni/edit-profile"
           element={<ProtectedRoute><AlumniProfile /></ProtectedRoute>}
         />
         <Route
-          path="/alumni/view-profile"
-          element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}
-          
-        />
-        <Route
-          path="/alumni/view-profile" // ✅ new view page
-          element={
-            <ProtectedRoute>
-              <AlumniProfileView />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/alumni/meetings"
-          element={
-            <ProtectedRoute>
-              <Meeting />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><Meeting /></ProtectedRoute>}
         />
         <Route
           path="/alumni/slots"
-          element={
-            <ProtectedRoute>
-              <AlumniSlots />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><AlumniSlots /></ProtectedRoute>}
         />
+
         {/* Admin Routes */}
         <Route
           path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
+          element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
         />
         <Route
           path="/admin/users"
-          element={
-            <ProtectedAdminRoute>
-              <AdminUserList />
-            </ProtectedAdminRoute>
-          }
+          element={<ProtectedAdminRoute><AdminUserList /></ProtectedAdminRoute>}
         />
-        
-<Route path="/alumni/:id" element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>} />
-        {/* Profile by ID */}
+
+        {/* Public Alumni Profile (from alumni list) */}
         <Route
           path="/alumni/:id"
-          element={<ProtectedRoute><AlumniProfileView /></ProtectedRoute>}
-           // ✅ use View for public profile
+          element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>}
         />
       </Routes>
     </>
