@@ -92,6 +92,11 @@ const App = () => {
           path="/alumni/:id"
           element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>}
         />
+
+        <Route
+          path="/meeting"
+          element={<ProtectedRoute><Meeting /></ProtectedRoute>}
+        />
       </Routes>
     </>
   );

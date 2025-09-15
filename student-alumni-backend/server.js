@@ -27,6 +27,7 @@ const alumniRoutes = require("./routes/alumniRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const meetingsRoutes = require("./routes/meetingsRoutes");
+const slotsRoutes = require("./routes/slotsRoutes");   
 
 // ✅ Use routes
 app.use("/api/student", studentRoutes);
@@ -34,6 +35,7 @@ app.use("/api/alumni", alumniRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/meetings", meetingsRoutes);
+app.use("/api/slots", slotsRoutes);  
 
 // ✅ Connect to MongoDB
 mongoose

@@ -114,4 +114,20 @@
   }
 }
 
+.request-meeting-btn {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.request-meeting-btn:hover {
+  background-color: #2563eb;
+}
+
+
 

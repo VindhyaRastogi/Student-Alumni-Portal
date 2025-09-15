@@ -2,62 +2,27 @@ const Slot = require("../models/Slot");
 const Meeting = require("../models/Meeting");
 const User = require("../models/User");
 
-// 📌 Alumni adds available slots
-exports.addSlots = async (req, res) => {
-  try {
-    const { slots } = req.body;
-    if (!slots || !slots.length) return res.status(400).json({ message: "No slots provided" });
-
-    let slotDoc = await Slot.findOne({ alumniId: req.user._id });
-
-    if (!slotDoc) {
-      slotDoc = new Slot({
-        alumniId: req.user._id,
-        alumniEmail: req.user.email,
-        slots,
-      });
-    } else {
-      slotDoc.slots.push(...slots);
-    }
-
-    await slotDoc.save();
-    res.json({ message: "Slots added successfully", slots: slotDoc.slots });
-  } catch (err) {
-    console.error("Error adding slots:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// 📌 Fetch slots by alumni email
-exports.getSlotsByEmail = async (req, res) => {
-  try {
-    const { email } = req.query;
-    const slotDoc = await Slot.findOne({ alumniEmail: email });
-    res.json(slotDoc ? slotDoc.slots : []);
-  } catch (err) {
-    console.error("Error fetching slots:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 // 📌 Student books a meeting
 exports.bookMeeting = async (req, res) => {
   try {
     const { alumniEmail, slot } = req.body;
+
+    // Find the alumni
     const alumni = await User.findOne({ email: alumniEmail });
     if (!alumni) return res.status(404).json({ message: "Alumni not found" });
 
-    // Remove the slot from alumni's available slots
+    // Remove slot from alumni availability
     await Slot.updateOne(
       { alumniId: alumni._id },
       { $pull: { slots: slot } }
     );
 
+    // Create a new meeting
     const meeting = new Meeting({
       studentId: req.user._id,
-      studentName: req.user.name,
+      studentName: req.user.fullName || req.user.name,
       alumniId: alumni._id,
-      alumniName: alumni.name,
+      alumniName: alumni.fullName || alumni.name,
       alumniEmail,
       slot,
     });
@@ -87,6 +52,7 @@ exports.cancelMeeting = async (req, res) => {
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) return res.status(404).json({ message: "Meeting not found" });
 
+    // Mark as cancelled
     meeting.status = "Cancelled";
     await meeting.save();
 

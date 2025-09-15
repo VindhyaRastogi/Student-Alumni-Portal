@@ -1,7 +1,7 @@
 // src/pages/AlumniSlots.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
-import "./AlumniSlots.css"; // we'll add some responsive styles here
+import "./AlumniSlots.css";
 
 const AlumniSlots = () => {
   const [date, setDate] = useState("");
@@ -10,14 +10,15 @@ const AlumniSlots = () => {
   const [newSlots, setNewSlots] = useState([]);
 
   const token = localStorage.getItem("token");
-  const alumniEmail = localStorage.getItem("email");
 
   const fetchMySlots = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/slots?email=${alumniEmail}`
+        `${import.meta.env.VITE_API_BASE_URL}/slots/my`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMySlots(res.data || []);
+      // controller returns { slots: [...] }
+      setMySlots(res.data.slots || []);
     } catch (err) {
       console.error("Error fetching slots:", err);
       setMySlots([]);
@@ -30,7 +31,8 @@ const AlumniSlots = () => {
       return;
     }
     const formattedSlot = `${date} ${time}`;
-    setNewSlots((prev) => [...prev, formattedSlot]);
+    // avoid duplicates in newSlots
+    setNewSlots((prev) => (prev.includes(formattedSlot) ? prev : [...prev, formattedSlot]));
     setDate("");
     setTime("");
   };
@@ -40,11 +42,9 @@ const AlumniSlots = () => {
       if (newSlots.length === 0) return alert("Please add at least one slot");
 
       await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/slots`,
+        `${import.meta.env.VITE_API_BASE_URL}/slots`,
         { slots: newSlots },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setNewSlots([]);

@@ -1,11 +1,12 @@
 // src/pages/AlumniPublicProfile.jsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";   // ✅ added useNavigate
 import axios from "axios";
-import "./AlumniProfileView.css"; // reuse same styles
+import "./AlumniProfileView.css";
 
 const AlumniPublicProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();  // ✅ navigation hook
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,6 +42,11 @@ const AlumniPublicProfile = () => {
 
   if (loading) return <p className="loading">Loading profile...</p>;
   if (!profile) return <p className="loading">Alumni profile not found.</p>;
+
+  // ✅ Navigate to Meeting page with alumni email
+  const handleRequestMeeting = () => {
+    navigate("/meeting", { state: { alumniEmail: profile.email } });
+  };
 
   return (
     <div className="profile-container">
@@ -78,6 +84,16 @@ const AlumniPublicProfile = () => {
         <strong>Location:</strong>{" "}
         {profile.location?.city}, {profile.location?.state}, {profile.location?.country}
       </p>
+
+      {/* ✅ Request Meeting Button */}
+      <div style={{ marginTop: "24px", textAlign: "center" }}>
+        <button
+          onClick={handleRequestMeeting}
+          className="request-meeting-btn"
+        >
+          Request Meeting
+        </button>
+      </div>
     </div>
   );
 };

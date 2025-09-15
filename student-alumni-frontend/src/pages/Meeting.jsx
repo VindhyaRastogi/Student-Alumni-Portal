@@ -1,6 +1,7 @@
 // src/pages/Meeting.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
+import "./Meeting.css";
 
 const Meeting = () => {
   const [meetings, setMeetings] = useState([]);
@@ -9,14 +10,13 @@ const Meeting = () => {
   const [alumniEmail, setAlumniEmail] = useState("");
 
   const token = localStorage.getItem("token");
+  const userType = localStorage.getItem("userType"); // 👈 stored at login (student / alumni)
 
   const fetchMeetings = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/meetings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setMeetings(res.data || []);
     } catch (err) {
@@ -28,11 +28,11 @@ const Meeting = () => {
   const fetchAvailableSlots = async (email) => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/slots?email=${encodeURIComponent(
+        `${import.meta.env.VITE_API_BASE_URL}/slots?email=${encodeURIComponent(
           email
         )}`
       );
-      setAvailableSlots(res.data || []);
+      setAvailableSlots(res.data.slots || []);
       setAlumniEmail(email);
     } catch (err) {
       console.error("Error fetching slots:", err);
@@ -44,13 +44,8 @@ const Meeting = () => {
     try {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/meetings`,
-        {
-          alumniEmail,
-          slot: selectedSlot,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { alumniEmail, slot: selectedSlot },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setSelectedSlot("");
       setAvailableSlots([]);
@@ -64,9 +59,7 @@ const Meeting = () => {
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchMeetings();
     } catch (err) {
@@ -106,38 +99,41 @@ const Meeting = () => {
         )}
       </ul>
 
-      <div className="schedule-section">
-        <h3>Schedule a New Meeting</h3>
+      {/* 👇 Only show scheduling section for students */}
+      {userType === "student" && (
+        <div className="schedule-section">
+          <h3>Schedule a New Meeting</h3>
 
-        <input
-          type="email"
-          placeholder="Enter Alumni Email"
-          value={alumniEmail}
-          onChange={(e) => setAlumniEmail(e.target.value)}
-        />
-        <button onClick={() => fetchAvailableSlots(alumniEmail)}>
-          Check Available Slots
-        </button>
+          <input
+            type="email"
+            placeholder="Enter Alumni Email"
+            value={alumniEmail}
+            onChange={(e) => setAlumniEmail(e.target.value)}
+          />
+          <button onClick={() => fetchAvailableSlots(alumniEmail)}>
+            Check Available Slots
+          </button>
 
-        <select
-          value={selectedSlot}
-          onChange={(e) => setSelectedSlot(e.target.value)}
-        >
-          <option value="">Select a Slot</option>
-          {availableSlots.map((slot, i) => (
-            <option key={i} value={slot}>
-              {slot}
-            </option>
-          ))}
-        </select>
+          <select
+            value={selectedSlot}
+            onChange={(e) => setSelectedSlot(e.target.value)}
+          >
+            <option value="">Select a Slot</option>
+            {availableSlots.map((slot, i) => (
+              <option key={i} value={slot}>
+                {slot}
+              </option>
+            ))}
+          </select>
 
-        <button
-          onClick={scheduleMeeting}
-          disabled={!selectedSlot || !alumniEmail}
-        >
-          Schedule Meeting
-        </button>
-      </div>
+          <button
+            onClick={scheduleMeeting}
+            disabled={!selectedSlot || !alumniEmail}
+          >
+            Schedule Meeting
+          </button>
+        </div>
+      )}
     </div>
   );
 };
