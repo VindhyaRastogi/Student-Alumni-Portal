@@ -1,92 +1,71 @@
-// src/pages/AlumniMeeting.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 
 const AlumniMeeting = () => {
-  const [meetings, setMeetings] = useState([]);
-  const token = localStorage.getItem("token");
-
-  // Fetch meetings scheduled with this alumni
-  const fetchMeetings = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/alumni`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMeetings(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error("Error fetching meetings:", err);
-      setMeetings([]);
-    }
-  };
-
-  // Confirm meeting
-  const confirmMeeting = async (meetingId) => {
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/${meetingId}/confirm`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchMeetings();
-    } catch (err) {
-      console.error("Error confirming meeting:", err);
-    }
-  };
-
-  // Cancel meeting
-  const cancelMeeting = async (meetingId) => {
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/meetings/${meetingId}/cancel`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchMeetings();
-    } catch (err) {
-      console.error("Error cancelling meeting:", err);
-    }
-  };
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMeetings();
+    const fetchRequests = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/meetings/alumni`
+        );
+        setRequests(res.data);
+      } catch (error) {
+        console.error("Error fetching meeting requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
   }, []);
 
+  const handleAction = async (id, action) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/${action}`);
+      setRequests((prev) =>
+        prev.map((req) =>
+          req._id === id ? { ...req, status: action } : req
+        )
+      );
+    } catch (error) {
+      console.error(`Error updating meeting:`, error);
+    }
+  };
+
+  if (loading) return <p>Loading meetings...</p>;
+
   return (
-    <div className="meeting-container">
-      <h2>Meeting Requests from Students</h2>
-      <ul className="meeting-list">
-        {meetings.length > 0 ? (
-          meetings.map((meeting) => (
-            <li key={meeting._id} className="meeting-item">
-              <span>
-                Student: <strong>{meeting.studentName || "Unknown"}</strong> <br />
-                Scheduled Slot: <strong>{meeting.slot}</strong> <br />
-                Status: <em>{meeting.status}</em>
-              </span>
-              <div className="meeting-actions">
-                {meeting.status === "Scheduled" && (
-                  <>
-                    <button onClick={() => confirmMeeting(meeting._id)}>
-                      Confirm
-                    </button>
-                    <button onClick={() => cancelMeeting(meeting._id)}>
-                      Cancel
-                    </button>
-                  </>
-                )}
-                {meeting.status === "Confirmed" && (
-                  <button onClick={() => cancelMeeting(meeting._id)}>
-                    Cancel
+    <div className="alumni-meeting-container">
+      <h2>Meeting Requests</h2>
+      {requests.length === 0 ? (
+        <p>No meeting requests yet.</p>
+      ) : (
+        <ul>
+          {requests.map((req) => (
+            <li key={req._id}>
+              <p>
+                <strong>Student:</strong> {req.student?.fullName} <br />
+                <strong>Email:</strong> {req.student?.email} <br />
+                <strong>Slot:</strong> {req.slot} <br />
+                <strong>Status:</strong> {req.status}
+              </p>
+              {req.status === "pending" && (
+                <div>
+                  <button onClick={() => handleAction(req._id, "accept")}>
+                    Accept
                   </button>
-                )}
-              </div>
+                  <button onClick={() => handleAction(req._id, "reject")}>
+                    Reject
+                  </button>
+                </div>
+              )}
             </li>
-          ))
-        ) : (
-          <li>No meeting requests yet.</li>
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

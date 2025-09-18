@@ -86,13 +86,22 @@ const AlumniPublicProfile = () => {
       </p>
 
       {/* ✅ Request Meeting Button */}
-      <div style={{ marginTop: "24px", textAlign: "center" }}>
-        <button
-          onClick={handleRequestMeeting}
-          className="request-meeting-btn"
-        >
-          Request Meeting
-        </button>
+      <div style={{ marginTop: "24px", textAlign: "centre" }}>
+        {/* ✅ Request Meeting button navigates properly */}
+      <button
+        className="btn-request"
+        onClick={() => navigate(`/student/request-meeting/${id}`)}
+      >
+        Request Meeting
+      </button>
+
+      {/* Optional: message button */}
+      <button
+        className="btn-message"
+        onClick={() => navigate(`/student/chats`)}
+      >
+        Message Alumni
+      </button>
       </div>
     </div>
   );

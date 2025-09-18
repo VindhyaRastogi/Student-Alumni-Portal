@@ -42,6 +42,7 @@ const Navbar = () => {
           <>
             <Link to="/alumni/slots">My Availability</Link>
             <Link to="/alumni/meetings">Meetings</Link>
+            <Link to="/alumni/chats">Chats</Link>
             <Link to="/alumni/history">History</Link>
             <Link to="/alumni/report">Report / Block</Link>
           </>

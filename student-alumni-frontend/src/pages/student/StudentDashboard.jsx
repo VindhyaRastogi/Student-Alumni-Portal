@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const StudentDashboard = () => {
   const studentMenu = [
-    { title: "Find Mentors", link: "/student/alumni-list", img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" },
+    { title: "Find Mentors", link: "/student/alumni", img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" },
     { title: "Your Meetings", link: "/student/meetings", img: "https://cdn-icons-png.flaticon.com/512/3094/3094853.png" },
     { title: "History", link: "/student/history", img: "https://cdn-icons-png.flaticon.com/512/942/942748.png" },
     { title: "Messages", link: "/student/chats", img: "https://cdn-icons-png.flaticon.com/512/2950/2950611.png" },

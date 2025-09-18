@@ -17,6 +17,9 @@ import Navbar from './components/Navbar';
 import StudentProfile from './pages/StudentProfile';
 import StudentProfileView from './pages/StudentProfileView';
 import AlumniPublicProfile from "./pages/AlumniPublicProfile";
+import ChatWindow from './pages/ChatWindow';
+import RequestMeeting from './pages/RequestMeeting';   // ✅ import new page
+import AlumniMeeting from './pages/AlumniMeeting';  
 
 const App = () => {
   const location = useLocation();
@@ -54,6 +57,15 @@ const App = () => {
           path="/student/meetings"
           element={<ProtectedRoute><Meeting /></ProtectedRoute>}
         />
+        <Route
+          path="/student/chats"
+          element={<ProtectedRoute><ChatWindow /></ProtectedRoute>}
+        />
+        {/* ✅ New Request Meeting Page */}
+        <Route
+          path="/student/request-meeting/:alumniId"
+          element={<ProtectedRoute><RequestMeeting /></ProtectedRoute>}
+        />
 
         {/* Alumni Routes */}
         <Route
@@ -70,11 +82,15 @@ const App = () => {
         />
         <Route
           path="/alumni/meetings"
-          element={<ProtectedRoute><Meeting /></ProtectedRoute>}
+          element={<ProtectedRoute><AlumniMeeting  /></ProtectedRoute>}
         />
         <Route
           path="/alumni/slots"
           element={<ProtectedRoute><AlumniSlots /></ProtectedRoute>}
+        />
+        <Route
+          path="/alumni/chats"
+          element={<ProtectedRoute><ChatWindow /></ProtectedRoute>}
         />
 
         {/* Admin Routes */}
@@ -93,6 +109,7 @@ const App = () => {
           element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>}
         />
 
+        {/* Meeting fallback route */}
         <Route
           path="/meeting"
           element={<ProtectedRoute><Meeting /></ProtectedRoute>}
