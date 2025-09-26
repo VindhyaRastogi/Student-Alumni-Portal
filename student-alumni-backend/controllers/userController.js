@@ -1,82 +1,51 @@
-const User = require('../models/User');
+const User = require("../models/User");
 
-// GET /users/me
-const getProfile = async (req, res) => {
-  res.json(req.user);
-};
-
-// POST /users (create new profile)
-const createProfile = async (req, res) => {
+// get current user profile
+exports.getMe = async (req, res) => {
   try {
-    const data = { ...req.body };
-    if (req.file) data.profilePicture = `/uploads/${req.file.filename}`;
-
-    const existing = await User.findOne({ email: req.user.email });
-    if (existing) return res.status(400).json({ message: 'Profile already exists' });
-
-    const newUser = new User({ ...data, email: req.user.email });
-    await newUser.save();
-    res.json(newUser);
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Server error while creating profile' });
+    console.error("getMe error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// PUT /users/:id (update profile)
-const updateProfile = async (req, res) => {
+// update profile (store role-specific data inside profile object)
+exports.updateProfile = async (req, res) => {
   try {
-    const updates = { ...req.body };
-    if (req.file) updates.profilePicture = `/uploads/${req.file.filename}`;
-
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json({ user: updatedUser });
+    const updates = req.body || {};
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { profile: updates, profileCompleted: true } },
+      { new: true }
+    ).select("-password");
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Error updating profile' });
+    console.error("updateProfile error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// GET /users/alumni/:id (fetch one alumni by ID)
-const getAlumniById = async (req, res) => {
+// list alumni (public for logged-in users; does NOT return admins)
+exports.listAlumni = async (req, res) => {
   try {
-    const alumni = await User.findById(req.params.id);
-    if (!alumni || alumni.userType !== 'alumni') {
-      return res.status(404).json({ message: 'Alumni not found' });
-    }
+    const alumni = await User.find({ role: "alumni" }).select("-password");
     res.json(alumni);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching alumni profile' });
+    console.error("listAlumni error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// GET /users/alumni (fetch all alumni with filters)
-const getAlumniList = async (req, res) => {
+// admin — list all users (excluding passwords)
+exports.adminListUsers = async (req, res) => {
   try {
-    const { name, company, jobTitle, areasOfInterest, location } = req.query;
-    let query = { userType: "alumni" };
-
-    if (name) query.name = { $regex: name, $options: "i" };
-    if (company) query.organization = { $regex: company, $options: "i" }; // ✅ fixed: schema uses organization
-    if (jobTitle) query.jobTitle = { $regex: jobTitle, $options: "i" };
-    if (areasOfInterest) query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
-    if (location) {
-      query.$or = [
-        { "location.city": { $regex: location, $options: "i" } },
-        { "location.state": { $regex: location, $options: "i" } },
-        { "location.country": { $regex: location, $options: "i" } },
-      ];
-    }
-
-    const alumni = await User.find(query).select("-password");
-    res.json(alumni);
+    const users = await User.find().select("-password");
+    res.json(users);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching alumni", error: err.message });
+    console.error("adminListUsers error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-};
-
-module.exports = {
-  getProfile,
-  createProfile,
-  updateProfile,
-  getAlumniById,
-  getAlumniList, // ✅ only one alumni list function
 };

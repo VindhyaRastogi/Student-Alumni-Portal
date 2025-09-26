@@ -2,10 +2,30 @@ const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
   {
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    content: { type: String, required: true },
-    read: { type: Boolean, default: false },
+    chatId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Chat",
+      required: true,
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["text", "photo", "video", "file"],
+      default: "text",
+    },
+    status: {
+      type: String,
+      enum: ["sent", "seen"],
+      default: "sent",
+    },
   },
   { timestamps: true }
 );

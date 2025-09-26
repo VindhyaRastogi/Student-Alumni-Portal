@@ -1,33 +1,16 @@
-const express = require('express');
-const {
-  getProfile,
-  createProfile,
-  updateProfile,
-  getAlumniById,
-  getAlumniList
-} = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
-const multer = require('multer');
-const path = require('path');
-
+const express = require("express");
 const router = express.Router();
+const { authMiddleware } = require("../middleware/authMiddleware");
+const { requireRole } = require("../middleware/roleMiddleware");
+const userCtrl = require("../controllers/userController");
 
-// Setup multer for image uploads
-const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: (req, file, cb) => {
-    const unique = Date.now() + path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${unique}`);
-  },
-});
+router.get("/me", authMiddleware, userCtrl.getMe);
+router.put("/me", authMiddleware, userCtrl.updateProfile);
 
-const upload = multer({ storage });
+// listing endpoints
+router.get("/alumni", authMiddleware, userCtrl.listAlumni);
 
-// Routes
-router.get('/me', protect, getProfile);
-router.post('/', protect, upload.single('profilePicture'), createProfile);
-router.put('/:id', protect, upload.single('profilePicture'), updateProfile);
-router.get('/alumni', protect, getAlumniList);  
-router.get('/alumni/:id', protect, getAlumniById);
+// admin-only
+router.get("/admin/users", authMiddleware, requireRole("admin"), userCtrl.adminListUsers);
 
 module.exports = router;

@@ -1,37 +1,12 @@
-// models/User.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  userType: {
-    type: String,
-    enum: ['student', 'alumni'],
-    required: true
-  },
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  gender: String,
-  phone: String,
-  degree: String,
-  specialization: String,
-  batch: String, // example: "2020-2024"
-  linkedin: String,
-  profilePicture: String,
-  jobTitle: String,
-  organization: String,
-  location: {
-    city: String,
-    state: String,
-    country: String
-  },
-
-  role: {
-  type: String,
-  enum: ["student", "alumni"],
-  default: "student",
-},
-
-  timeSlots: [String],
-  password: { type: String, required: true },
+  fullName: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true }, // hashed
+  role: { type: String, enum: ["student","alumni","admin"], required: true },
+  profileCompleted: { type: Boolean, default: false },
+  profile: { type: mongoose.Schema.Types.Mixed, default: {} }, // store role-specific details here
 }, { timestamps: true });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

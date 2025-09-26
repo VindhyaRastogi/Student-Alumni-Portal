@@ -98,7 +98,7 @@ const AlumniPublicProfile = () => {
       {/* Optional: message button */}
       <button
         className="btn-message"
-        onClick={() => navigate(`/student/chats`)}
+        onClick={() => navigate(`/student/chats/${id}`)}
       >
         Message Alumni
       </button>

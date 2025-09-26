@@ -100,40 +100,7 @@ const Meeting = () => {
       </ul>
 
       {/* 👇 Only show scheduling section for students */}
-      {userType === "student" && (
-        <div className="schedule-section">
-          <h3>Schedule a New Meeting</h3>
-
-          <input
-            type="email"
-            placeholder="Enter Alumni Email"
-            value={alumniEmail}
-            onChange={(e) => setAlumniEmail(e.target.value)}
-          />
-          <button onClick={() => fetchAvailableSlots(alumniEmail)}>
-            Check Available Slots
-          </button>
-
-          <select
-            value={selectedSlot}
-            onChange={(e) => setSelectedSlot(e.target.value)}
-          >
-            <option value="">Select a Slot</option>
-            {availableSlots.map((slot, i) => (
-              <option key={i} value={slot}>
-                {slot}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={scheduleMeeting}
-            disabled={!selectedSlot || !alumniEmail}
-          >
-            Schedule Meeting
-          </button>
-        </div>
-      )}
+      
     </div>
   );
 };

@@ -1,67 +1,69 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const AllowedEmail = require("../models/AllowedEmail");
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+const signToken = (user) =>
+  jwt.sign({ id: user._id.toString(), role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
-};
 
-// @route   POST /api/auth/register
 exports.register = async (req, res) => {
-  const { name, email, password, userType } = req.body; // ✅ use userType
-
   try {
-    // Validate input
-    if (!name || !email || !password || !userType) {
-      return res.status(400).json({ message: 'All fields are required' });
+    const { fullName, email, password } = req.body;
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: "fullName, email and password required" });
     }
 
-    // Check if email already exists
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: 'Email already registered' });
+    const normalized = email.toLowerCase().trim();
+
+    // check allowed
+    const allowed = await AllowedEmail.findOne({ email: normalized });
+    if (!allowed) {
+      return res.status(403).json({ message: "Email not authorized to register. Use your college email or contact admin." });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // existing
+    const existing = await User.findOne({ email: normalized });
+    if (existing) return res.status(400).json({ message: "User already registered" });
 
-    // Create user
-    const user = await User.create({ name, email, password: hashedPassword, userType });
+    const hashed = await bcrypt.hash(password, 10);
 
-    // Remove password before sending response
-    const { password: _, ...userData } = user._doc;
+    const user = await User.create({
+      fullName,
+      email: normalized,
+      password: hashed,
+      role: allowed.role,
+    });
 
-    const token = generateToken(user._id);
-    res.status(201).json({ user: userData, token });
+    const token = signToken(user);
+    const userSafe = { _id: user._id, fullName: user.fullName, email: user.email, role: user.role };
 
+    res.json({ user: userSafe, token });
   } catch (err) {
-    console.error('Registration Error:', err); // log for backend
-    res.status(500).json({ message: 'Registration failed', error: err.message });
+    console.error("register error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// @route   POST /api/auth/login
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "email and password required" });
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    const normalized = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalized });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Create JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '30d'
-    });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-    res.json({ user, token });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    const token = signToken(user);
+    const userSafe = { _id: user._id, fullName: user.fullName, email: user.email, role: user.role };
+
+    res.json({ user: userSafe, token });
+  } catch (err) {
+    console.error("login error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

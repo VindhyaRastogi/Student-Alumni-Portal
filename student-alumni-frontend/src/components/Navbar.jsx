@@ -33,7 +33,7 @@ const Navbar = () => {
             <Link to="/student/alumni">Alumni List</Link>
             <Link to="/student/chats">Chats</Link>
             <Link to="/student/meetings">Meetings</Link>
-            <Link to="/student/history">History</Link>
+            {/* <Link to="/student/history">History</Link> */}
             <Link to="/student/report">Report / Block</Link>
           </>
         )}
@@ -43,7 +43,7 @@ const Navbar = () => {
             <Link to="/alumni/slots">My Availability</Link>
             <Link to="/alumni/meetings">Meetings</Link>
             <Link to="/alumni/chats">Chats</Link>
-            <Link to="/alumni/history">History</Link>
+            {/* <Link to="/alumni/history">History</Link> */}
             <Link to="/alumni/report">Report / Block</Link>
           </>
         )}
