@@ -1,46 +1,79 @@
-/* Navbar.css */
+/* src/components/Navbar.css */
+
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background-color: #001f54;
-  padding: 0.75rem 2rem;
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  background: linear-gradient(90deg, #003366, #0055aa);
+  color: #fff;
+  padding: 0.6rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.navbar-left,
+.navbar-brand a {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.navbar-links a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  transition: background 0.2s ease-in-out;
+}
+
+.navbar-links a:hover {
+  background: rgba(255,255,255,0.15);
+}
+
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-}
-
-.navbar-left a,
-.navbar-right a,
-.logout-btn {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.navbar-left a:hover,
-.navbar-right a:hover {
-  color: #f0a500;
 }
 
 .logout-btn {
-  padding: 0.5rem 1.2rem;
-  background-color: #034078;
+  background: #ff4444;
   border: none;
-  border-radius: 6px;
+  color: #fff;
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: background 0.2s ease-in-out;
 }
 
 .logout-btn:hover {
-  background-color: #0466c8;
+  background: #e63636;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .navbar-links {
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+  .navbar-right {
+    flex-basis: 100%;
+    justify-content: center;
+  }
 }

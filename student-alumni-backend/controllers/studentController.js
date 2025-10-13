@@ -1,86 +1,41 @@
 const Student = require("../models/Student");
+const User = require("../models/User");
 
-// ✅ Create or Update Student Profile
-const createOrUpdateProfile = async (req, res) => {
+const path = require("path");
+
+// ✅ Get student profile by ID (or from token)
+exports.getStudentProfile = async (req, res) => {
   try {
-    const userId = req.user._id; // from protect middleware
-    const { gender, degree, specialization, batch, linkedin } = req.body;
+    const userId = req.user.id; // from token middleware
+    const user = await User.findById(userId).select("-password");
 
-    // Always take name & email from logged-in user
-    let profileData = {
-      userId,
-      fullName: req.user.name,
-      email: req.user.email,
-      gender,
-      degree,
-      specialization,
-      batch,
-      linkedin,
-    };
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // If profile picture uploaded
-    if (req.file) {
-      profileData.profilePicture = `/uploads/${req.file.filename}`;
-    }
-
-    let student = await Student.findOne({ userId });
-
-    if (student) {
-      // Update existing profile
-      student = await Student.findOneAndUpdate(
-        { userId },
-        { $set: profileData },
-        { new: true }
-      ).populate("userId", "name email");
-
-      return res.json({
-        message: "Profile updated successfully",
-        profile: student,
-      });
-    } else {
-      // Create new profile
-      student = new Student(profileData);
-      await student.save();
-      await student.populate("userId", "name email");
-
-      return res.json({
-        message: "Profile created successfully",
-        profile: student,
-      });
-    }
-  } catch (err) {
-    console.error("Error saving student profile:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
-
-// ✅ Get Student Profile
-const getProfile = async (req, res) => {
-  try {
-    const student = await Student.findOne({ userId: req.user._id }).populate(
-      "userId",
-      "name email"
-    );
-
-    if (!student) {
-  return res.json({
-    fullName: req.user.name,
-    email: req.user.email,
-    gender: "",
-    degree: "",
-    specialization: "",
-    batch: "",
-    linkedin: "",
-    profilePicture: ""
-  });
-}
-
-
-    res.json(student);
+    res.status(200).json(user);
   } catch (err) {
     console.error("Error fetching student profile:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-module.exports = { createOrUpdateProfile, getProfile };
+// ✅ Update student profile
+exports.updateStudentProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.profilePicture = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

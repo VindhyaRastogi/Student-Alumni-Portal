@@ -1,42 +1,115 @@
-/* Register.css */
-.register-container {
-  max-width: 450px;
-  margin: 3rem auto;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #fefcfb;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* register.css */
+
+/* Center container */
+.auth-container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 40px 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.register-container h2 {
-  margin-bottom: 1.5rem;
+/* Heading */
+.auth-container h2 {
   text-align: center;
-  color: #0353a4;
+  margin-bottom: 25px;
+  color: #333333;
+  font-size: 28px;
 }
 
-.register-container input,
-.register-container select {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
+/* Error message */
+.error {
+  color: #e74c3c;
+  background: #fdecea;
+  padding: 10px 15px;
   border-radius: 6px;
-  font-size: 1rem;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
 }
 
-.register-container button {
+/* Form group */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Labels */
+label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #555555;
+  font-size: 14px;
+}
+
+label small {
+  font-weight: 400;
+  color: #999999;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* Inputs */
+input {
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1.5px solid #cccccc;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+}
+
+/* Button */
+button {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #1282a2;
-  color: white;
+  padding: 14px;
+  background: #4a90e2;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
-.register-container button:hover {
-  background-color: #006daa;
+button:hover {
+  background: #357ab7;
+  box-shadow: 0 4px 12px rgba(53, 122, 183, 0.4);
 }
+
+/* Small responsive tweak */
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 30px 20px;
+    margin: 40px 15px;
+  }
+}
+
+.login-redirect {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #555555;
+}
+
+.login-redirect a {
+  color: #4a90e2;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+.login-redirect a:hover {
+  text-decoration: underline;
+}
+

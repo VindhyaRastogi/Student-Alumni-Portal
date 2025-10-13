@@ -1,26 +1,31 @@
-// src/App.jsx
-import { Routes, Route, useLocation } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StudentDashboard from "./pages/StudentDashboard";
 import AlumniDashboard from "./pages/AlumniDashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import Navbar from "./components/Navbar";
+import ForgotPassword from "./pages/ForgotPassword";
+import StudentProfile from "./pages/StudentProfile"; // ✅ NEW IMPORT
+import AdminUsers from "./pages/admin/AdminUsers";
 
 const App = () => {
   const location = useLocation();
+
+  // hide navbar on home and forgot password
   const hideNavbar =
-    location.pathname === "/" ||
-    location.pathname === "/login" ||
-    location.pathname === "/register";
+    location.pathname === "/" || location.pathname === "/forgot-password";
 
   return (
     <>
-      {/* Navbar removed for now */}
+      {!hideNavbar && <Navbar />}
+
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Home page with integrated Login/Register */}
+        <Route path="/" element={<Home />} />
+
+        {/* Forgot Password page */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Student Dashboard */}
         <Route
@@ -28,6 +33,16 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ Student Profile Page */}
+        <Route
+          path="/student/profile"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentProfile />
             </ProtectedRoute>
           }
         />
@@ -51,6 +66,11 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/admin/users" element={<AdminUsers />} />
       </Routes>
     </>
   );

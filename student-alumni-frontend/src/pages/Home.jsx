@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react"; 
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import "./Home.css";
+import Register from "./Register"; // import Register component
+import Login from "./Login";       // import Login component
 
 const Home = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Background slider images — drop your files in /public/hero/...
   const slides = useMemo(
     () => ["/hero/slide1.jpg", "/hero/slide2.jpg", "/hero/slide3.jpg"],
     []
@@ -22,46 +23,8 @@ const Home = () => {
     return () => clearInterval(id);
   }, [slides.length]);
 
-  // Login state
-  const [role, setRole] = useState("student"); // 'student' | 'alumni'
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-
-    try {
-      const res = await axios.post(`${BASE}/auth/login`, { email, password });
-      let { user, token } = res.data;
-
-      const userRole = user.userType || user.role;
-      user = { ...user, role: userRole };
-
-      // Save to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("role", userRole);
-
-      // Update AuthContext
-      login(user);
-
-      // Redirect based on role
-      if (userRole === "student") navigate("/student/dashboard");
-      else if (userRole === "alumni") navigate("/alumni/dashboard");
-      else navigate("/");
-    } catch (err) {
-      console.error("Login failed:", err.response?.data.message || err.message);
-      setError(err.response?.data.message || "Login failed");
-    } finally {
-      setBusy(false);
-    }
-  };
+  // Toggle between Login/Register on Home
+  const [showRegister, setShowRegister] = useState(false);
 
   return (
     <div className="home-root">
@@ -90,7 +53,7 @@ const Home = () => {
         </nav>
       </header>
 
-      {/* Hero + Login */}
+      {/* Hero Section */}
       <main className="hero-wrap">
         <section className="hero-copy">
           <h1>Connect. Collaborate. Grow.</h1>
@@ -99,67 +62,23 @@ const Home = () => {
             schedule meetings, and discover mentors & opportunities.
           </p>
           <div className="hero-cta">
-            <a className="btn btn-outline" href="#features">
-              Explore Features
-            </a>
-            <Link className="btn btn-solid" to="/register">
+            <button
+              className="btn btn-outline"
+              onClick={() => setShowRegister(false)}
+            >
+              Login
+            </button>
+            <button
+              className="btn btn-solid"
+              onClick={() => setShowRegister(true)}
+            >
               Register
-            </Link>
+            </button>
           </div>
         </section>
 
-        <section className="login-container">
-          <h2>Login</h2>
-          <form onSubmit={handleLogin} noValidate>
-            <label>I am a</label>
-            <div className="segmented">
-              <button
-                type="button"
-                className={role === "student" ? "seg active" : "seg"}
-                onClick={() => setRole("student")}
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                className={role === "alumni" ? "seg active" : "seg"}
-                onClick={() => setRole("alumni")}
-              >
-                Alumni
-              </button>
-            </div>
-
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
-
-            {error && <div className="error">{error}</div>}
-
-            <button type="submit" disabled={busy}>
-              {busy ? "Signing in..." : "Login"}
-            </button>
-
-            <div className="register-link">
-              <p>
-                New here?{" "}
-                <Link to={`/register?role=${role}`}>Register First !</Link>
-              </p>
-            </div>
-          </form>
+        <section className="auth-section">
+          {showRegister ? <Register /> : <Login />}
         </section>
       </main>
 

@@ -1,49 +1,107 @@
-// src/pages/Register.jsx
-import { useState } from "react";
+import { useState } from "react"; 
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import './Register.css';
 
 const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
   const API = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
+
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post(`${API}/auth/register`, {
-        email,
-        password,
-      });
+    setError("");
 
-      alert("Registration successful! Please login.");
-      navigate("/login");
+    // College email check
+    if (!formData.email.endsWith("@iiitd.ac.in")) {
+      setError("Please use your college email (iiitd.ac.in).");
+      return;
+    }
+
+    // Password validation
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
+
+    try {
+      const res = await axios.post(`${API}/auth/register`, formData);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      const role = res.data.user.role;
+      if (role === "student") navigate("/student/dashboard");
+      else if (role === "alumni") navigate("/alumni/dashboard");
+      else if (role === "admin") navigate("/admin/dashboard");
     } catch (err) {
-      alert(err.response?.data?.error || "Registration failed");
+      setError(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div>
+    <div className="auth-container">
       <h2>Register</h2>
+      {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="College Email (must match allowed list)"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="form-group">
+          <label htmlFor="fullName">Full Name</label>
+          <input
+            id="fullName"
+            name="fullName"
+            placeholder="Enter your full name"
+            value={formData.fullName}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="email">
+            Email <small>(Use college email id only)</small>
+          </label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="Enter your college email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Enter a strong password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
         <button type="submit">Register</button>
       </form>
+
+      {/* Login redirect */}
+      <p className="login-redirect">
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
     </div>
   );
 };

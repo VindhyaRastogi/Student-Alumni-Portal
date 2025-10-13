@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Student.css";
+// import "./Student.css";
 
 const StudentProfileView = () => {
   const [profile, setProfile] = useState(null);
@@ -12,24 +12,30 @@ const StudentProfileView = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-console.log("🔑 Token:", token);
+        if (!token) return;
 
-const res = await axios.get(
-  `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
-  { headers: { Authorization: `Bearer ${token}` } }
-);
+        console.log("🔑 Token:", token);
 
-console.log("✅ Profile data:", res.data);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-        // ✅ fix relative profile picture path
-        if (
-          res.data.profilePicture &&
-          !res.data.profilePicture.startsWith("http")
-        ) {
-          res.data.profilePicture = `http://localhost:5000/${res.data.profilePicture}`;
+        console.log("✅ Profile data:", res.data);
+
+        const data = res.data;
+
+        // ✅ Fix relative profile picture path
+        if (data.profilePicture && !data.profilePicture.startsWith("http")) {
+          data.profilePicture = `${import.meta.env.VITE_API_BASE_URL.replace(
+            "/api",
+            ""
+          )}${data.profilePicture}`;
         }
 
-        setProfile(res.data);
+        setProfile(data);
       } catch (err) {
         console.error(
           "Error fetching student profile:",
@@ -37,6 +43,7 @@ console.log("✅ Profile data:", res.data);
         );
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -55,6 +62,7 @@ console.log("✅ Profile data:", res.data);
         <img
           src={profile.profilePicture || "/default-avatar.png"}
           alt="Profile"
+          style={{ width: "150px", height: "150px", borderRadius: "50%" }}
         />
       </div>
 
@@ -85,7 +93,7 @@ console.log("✅ Profile data:", res.data);
         </p>
       </div>
 
-      <div className="button-container">
+      <div className="button-container" style={{ marginTop: "1.5rem" }}>
         <button onClick={() => navigate("/student/edit-profile")}>
           Edit Profile
         </button>
