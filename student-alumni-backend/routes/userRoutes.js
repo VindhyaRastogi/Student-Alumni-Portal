@@ -4,13 +4,10 @@ const authMiddleware = require("../middleware/authMiddleware"); // ✅ fixed
 const { requireRole } = require("../middleware/roleMiddleware");
 const userCtrl = require("../controllers/userController");
 
-router.get("/me", authMiddleware, userCtrl.getMe);
-router.put("/me", authMiddleware, userCtrl.updateProfile);
+router.get("/me", authMiddleware.auth, userCtrl.getMe);
+router.put("/me", authMiddleware.auth, userCtrl.updateProfile);
+router.get("/alumni", authMiddleware.auth, userCtrl.listAlumni);
+router.get("/admin/users", authMiddleware.auth, requireRole("admin"), userCtrl.adminListUsers);
 
-// listing endpoints
-router.get("/alumni", authMiddleware, userCtrl.listAlumni);
-
-// admin-only
-router.get("/admin/users", authMiddleware, requireRole("admin"), userCtrl.adminListUsers);
 
 module.exports = router;

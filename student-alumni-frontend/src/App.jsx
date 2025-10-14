@@ -7,7 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Navbar from "./components/Navbar";
 import ForgotPassword from "./pages/ForgotPassword";
 import StudentProfile from "./pages/StudentProfile"; // ✅ NEW IMPORT
-import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUsers from "./pages/AdminUsers";
 
 const App = () => {
   const location = useLocation();
