@@ -1,28 +1,27 @@
 const express = require("express");
-const router = express.Router();
-const { auth } = require("../middleware/authMiddleware"); // ✅ Correct import
+const multer = require("multer");
+const { auth } = require("../middleware/authMiddleware");
 const {
   getStudentProfile,
   updateStudentProfile,
 } = require("../controllers/studentController");
 
-const multer = require("multer");
-const path = require("path");
+const router = express.Router();
 
-// ✅ Multer setup
+// ✅ Set up file upload with multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
+  destination: "uploads/",
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_"));
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
 const upload = multer({ storage });
 
-// ✅ Routes
+// ✅ Get profile
 router.get("/profile", auth, getStudentProfile);
+
+// ✅ Update profile
 router.put("/profile", auth, upload.single("profilePicture"), updateStudentProfile);
 
 module.exports = router;

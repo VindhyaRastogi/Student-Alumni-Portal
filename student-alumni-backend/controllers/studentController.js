@@ -1,19 +1,15 @@
-
 const User = require("../models/User");
-
 const path = require("path");
+const fs = require("fs");
 
-// ✅ Get student profile by ID (or from token)
+// ✅ Get logged-in student profile
 exports.getStudentProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // from token middleware
-    const user = await User.findById(userId).select("-password");
-
+    const user = await User.findById(req.user._id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.status(200).json(user);
-  } catch (err) {
-    console.error("Error fetching student profile:", err);
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching student profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -21,21 +17,39 @@ exports.getStudentProfile = async (req, res) => {
 // ✅ Update student profile
 exports.updateStudentProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const {
+      gender,
+      degree,
+      specialization,
+      batch,
+      areaOfInterest,
+      linkedin,
+    } = req.body;
 
-    const updateData = { ...req.body };
-    if (req.file) {
-      updateData.profilePicture = `/uploads/${req.file.filename}`;
+    let updateData = {
+      gender,
+      degree,
+      specialization,
+      batch,
+      areaOfInterest,
+      linkedin,
+    };
+
+    // ✅ Handle profile picture if uploaded
+    if (req.files && req.files.profilePicture) {
+      const file = req.files.profilePicture;
+      const uploadPath = path.join(__dirname, "../uploads", file.name);
+      await file.mv(uploadPath);
+      updateData.profilePicture = `/uploads/${file.name}`;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
-      runValidators: true,
     }).select("-password");
 
-    res.status(200).json(updatedUser);
-  } catch (err) {
-    console.error("Error updating profile:", err);
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating student profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

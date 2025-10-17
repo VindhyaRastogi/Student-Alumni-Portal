@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./StudentProfile.css";
 
 const StudentProfile = () => {
+  
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -17,8 +19,18 @@ const StudentProfile = () => {
 
   const [preview, setPreview] = useState(null);
 
-  // Fetch logged-in user's name & email (assuming token-based login)
   useEffect(() => {
+  // Try fetching from localStorage first
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    setProfile((prev) => ({
+      ...prev,
+      name: user.fullName,   // matches your Register form field
+      email: user.email,
+    }));
+  } else {
+    // Optional fallback — fetch from backend if not found
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -33,7 +45,9 @@ const StudentProfile = () => {
       }
     };
     fetchUserData();
-  }, []);
+  }
+}, []);
+
 
   // Handle text inputs
   const handleChange = (e) => {
@@ -49,6 +63,8 @@ const StudentProfile = () => {
     }
   };
 
+const navigate = useNavigate();
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
@@ -59,7 +75,7 @@ const handleSubmit = async (e) => {
       formData.append(key, profile[key]);
     });
 
-    const res = await axios.put(
+    await axios.put(
       `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
       formData,
       {
@@ -71,12 +87,13 @@ const handleSubmit = async (e) => {
     );
 
     alert("Profile updated successfully!");
-    console.log("Updated profile:", res.data);
+    navigate("/student/profile"); // ✅ redirect to view page
   } catch (err) {
     console.error("Error updating profile:", err);
     alert("Error updating profile");
   }
 };
+
 
 
   // Options for dropdowns

@@ -6,7 +6,8 @@ import AlumniDashboard from "./pages/AlumniDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Navbar from "./components/Navbar";
 import ForgotPassword from "./pages/ForgotPassword";
-import StudentProfile from "./pages/StudentProfile"; // ✅ NEW IMPORT
+import StudentProfile from "./pages/StudentProfile";
+import StudentProfileView from "./pages/StudentProfileView"; // ✅ NEW IMPORT
 import AdminUsers from "./pages/AdminUsers";
 
 const App = () => {
@@ -21,13 +22,13 @@ const App = () => {
       {!hideNavbar && <Navbar />}
 
       <Routes>
-        {/* Home page with integrated Login/Register */}
+        {/* 🏠 Home page with integrated Login/Register */}
         <Route path="/" element={<Home />} />
 
-        {/* Forgot Password page */}
+        {/* 🔑 Forgot Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Student Dashboard */}
+        {/* 🎓 Student Dashboard */}
         <Route
           path="/student/dashboard"
           element={
@@ -37,9 +38,19 @@ const App = () => {
           }
         />
 
-        {/* ✅ Student Profile Page */}
+        {/* 👨‍🎓 Student Profile (View) */}
         <Route
           path="/student/profile"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentProfileView />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✏️ Student Profile (Edit) */}
+        <Route
+          path="/student/edit-profile"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentProfile />
@@ -47,7 +58,7 @@ const App = () => {
           }
         />
 
-        {/* Alumni Dashboard */}
+        {/* 🧑‍💼 Alumni Dashboard */}
         <Route
           path="/alumni/dashboard"
           element={
@@ -57,7 +68,7 @@ const App = () => {
           }
         />
 
-        {/* Admin Dashboard */}
+        {/* 🛠 Admin Dashboard */}
         <Route
           path="/admin/dashboard"
           element={
@@ -67,10 +78,18 @@ const App = () => {
           }
         />
 
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 👥 Admin Users Management */}
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/admin/users" element={<AdminUsers />} />
+        {/* 🚧 Fallback route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
