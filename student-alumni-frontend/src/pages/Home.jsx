@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react"; 
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import "./Home.css";
 import Register from "./Register"; // import Register component
-import Login from "./Login";       // import Login component
+import Login from "./Login"; // import Login component
 
 const Home = () => {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const Home = () => {
             A single place for students and alumni to chat in real-time,
             schedule meetings, and discover mentors & opportunities.
           </p>
-          <div className="hero-cta">
+          {/* <div className="hero-cta">
             <button
               className="btn btn-outline"
               onClick={() => setShowRegister(false)}
@@ -69,12 +69,12 @@ const Home = () => {
               Login
             </button>
             <button
-              className="btn btn-solid"
-              onClick={() => setShowRegister(true)}
+              className="btn btn-outline"
+              onClick={() => setShowRegister(false)}
             >
               Register
             </button>
-          </div>
+          </div> */}
         </section>
 
         <section className="auth-section">
