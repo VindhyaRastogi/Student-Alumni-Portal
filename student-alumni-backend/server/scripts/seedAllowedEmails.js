@@ -14,13 +14,22 @@ const list = [
   { email: "ankit@iiitd.ac.in", role: "alumni" },
   { email: "admin@iiitd.ac.in", role: "admin" },
   // add more emails here...
+  //   admin@iiitd.ac.in - asdf
+  // ankit@iiitd.ac.in - qwerty
+  // nandini@iiitd.ac.in - 1234
+  // vindhya@iiitd.ac.in - Vindhya@3
+  // zubiya@iiitd.ac.in - Zubiya@123
 ];
 
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     for (const item of list) {
-      await AllowedEmail.updateOne({ email: item.email }, { $set: item }, { upsert: true });
+      await AllowedEmail.updateOne(
+        { email: item.email },
+        { $set: item },
+        { upsert: true }
+      );
       console.log("Upserted:", item.email);
     }
     console.log("Done seeding allowed emails.");

@@ -18,10 +18,10 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-router.get("/profile", authMiddleware, studentCtrl.getStudentProfile);
+
 // ✅ Get profile
 router.get("/profile", auth, getStudentProfile);
-router.put("/profile", authMiddleware, studentCtrl.updateStudentProfile);
+
 // ✅ Update profile
 router.put(
   "/profile",

@@ -19,9 +19,17 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
+    // ✅ Validate IIITD email domain
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@iiitd\.ac\.in$/;
+    if (!emailPattern.test(formData.email)) {
+      setError(
+        "Please use your official IIITD email ID (ending with @iiitd.ac.in)"
+      );
+      return;
+    }
+
     try {
       const res = await axios.post(`${API}/auth/login`, formData);
-      // use context login (this also sets localStorage)
       login(res.data.user, res.data.token);
 
       const role = res.data.user.role;
