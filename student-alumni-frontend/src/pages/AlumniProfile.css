@@ -1,0 +1,112 @@
+/* Container (reuse same style as Profile.css for consistency) */
+.profile-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px 40px;
+  background-color: #fefcfb;
+  border: 2px solid #034078;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+/* Make sure labels are visible */
+.profile-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #034078; /* dark blue for contrast */
+  font-size: 14px;
+}
+
+/* Heading */
+.profile-container h2 {
+  text-align: center;
+  color: #034078;
+  margin-bottom: 25px;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+/* Section headings */
+.profile-container h3 {
+  margin-top: 25px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: #034078;
+  border-bottom: 2px solid #1282a2;
+  padding-bottom: 4px;
+}
+
+/* Profile picture */
+.profile-picture {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.profile-picture img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #1282a2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Degree block */
+.degree-block {
+  padding: 15px 20px;
+  margin: 15px 0;
+  border: 1px solid #cce0f2;
+  border-radius: 12px;
+  background-color: #f8fbff;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 16px;
+  color: #034078;
+}
+
+/* Button container */
+.button-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.button-container button {
+  padding: 12px 20px;
+  background-color: #034078;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s;
+}
+
+.button-container button:hover {
+  background-color: #1282a2;
+  transform: translateY(-2px);
+}
+
+/* Responsive behavior */
+@media (max-width: 600px) {
+  .profile-container {
+    padding: 20px;
+  }
+
+  .profile-container h2 {
+    font-size: 24px;
+  }
+
+  .profile-container h3 {
+    font-size: 18px;
+  }
+
+  .button-container button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

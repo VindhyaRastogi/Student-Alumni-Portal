@@ -9,6 +9,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import StudentProfile from "./pages/StudentProfile";
 import StudentProfileView from "./pages/StudentProfileView"; // ✅ NEW IMPORT
 import AdminUsers from "./pages/AdminUsers";
+import AlumniProfile from "./pages/AlumniProfile";
+import AlumniProfileView from "./pages/AlumniProfileView";
 
 const App = () => {
   const location = useLocation();
@@ -44,6 +46,26 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentProfileView />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🧑‍🎓 Alumni Profile (Edit) */}
+        <Route
+          path="/alumni/edit-profile"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 👨‍🎓 Alumni Profile (View) */}
+        <Route
+          path="/alumni/view-profile"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniProfileView />
             </ProtectedRoute>
           }
         />
