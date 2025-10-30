@@ -155,7 +155,7 @@ body {
   transform: translateY(-2px);
 }
 .btn-solid {
-  background: linear-gradient(135deg, var(--blue-700), var(--teal-500));
+  /* background: linear-gradient(135deg, var(--blue-700), var(--teal-500)); */
   color: #fff;
   box-shadow: var(--shadow);
 }

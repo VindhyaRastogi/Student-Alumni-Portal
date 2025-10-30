@@ -4,7 +4,6 @@ import axios from "axios";
 import "./StudentProfile.css";
 
 const StudentProfile = () => {
-  
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -18,85 +17,110 @@ const StudentProfile = () => {
   });
 
   const [preview, setPreview] = useState(null);
+  const navigate = useNavigate();
 
+  // ✅ Fetch existing profile data on page load
   useEffect(() => {
-  // Try fetching from localStorage first
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    const user = JSON.parse(storedUser);
-    setProfile((prev) => ({
-      ...prev,
-      name: user.fullName,   // matches your Register form field
-      email: user.email,
-    }));
-  } else {
-    // Optional fallback — fetch from backend if not found
-    const fetchUserData = async () => {
+    const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found. Please login again.");
+          return;
+        }
+
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/me`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
-        const { name, email } = res.data.user;
-        setProfile((prev) => ({ ...prev, name, email }));
+
+        const data = res.data.user || res.data;
+
+        // ✅ Fix image URL if needed
+        if (data.profilePicture && !data.profilePicture.startsWith("http")) {
+          data.profilePicture = `${import.meta.env.VITE_API_BASE_URL.replace(
+            "/api",
+            ""
+          )}${data.profilePicture}`;
+        }
+
+        setProfile({
+          name: data.name || data.fullName || "",
+          email: data.email || "",
+          gender: data.gender || "",
+          degree: data.degree || "",
+          specialization: data.specialization || "",
+          batch: data.batch || "",
+          areaOfInterest: data.areaOfInterest || "",
+          linkedin: data.linkedin || "",
+          profilePicture: data.profilePicture || "",
+        });
+
+        setPreview(data.profilePicture || null);
       } catch (err) {
-        console.error("Failed to fetch user:", err);
+        console.error("Error fetching profile:", err);
       }
     };
-    fetchUserData();
-  }
-}, []);
 
+    fetchProfile();
+  }, []);
 
-  // Handle text inputs
+  // ✅ Handle text and select changes
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle image upload preview
+  // ✅ Handle image selection + preview
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfile({ ...profile, profilePicture: file });
+      setProfile((prev) => ({ ...prev, profilePicture: file }));
       setPreview(URL.createObjectURL(file));
     }
   };
 
-const navigate = useNavigate();
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const token = localStorage.getItem("token");
-
-    const formData = new FormData();
-    Object.keys(profile).forEach((key) => {
-      formData.append(key, profile[key]);
-    });
-
-    await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+  // ✅ Submit handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login again.");
+        return;
       }
-    );
 
-    alert("Profile updated successfully!");
-    navigate("/student/profile"); // ✅ redirect to view page
-  } catch (err) {
-    console.error("Error updating profile:", err);
-    alert("Error updating profile");
-  }
-};
+      const formData = new FormData();
+      Object.keys(profile).forEach((key) => {
+        formData.append(key, profile[key]);
+      });
 
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/student/profile`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
+      if (res.status === 200 || res.data.success) {
+        alert("✅ Profile updated successfully!");
+        navigate("/student/profile");
+      } else {
+        alert("⚠️ Failed to update profile. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Error updating profile. Check console for details.");
+    }
+  };
 
-  // Options for dropdowns
+  // Dropdown data
   const degrees = ["B.Tech", "M.Tech", "Ph.D"];
   const specializations = {
     "B.Tech": ["CSE", "ECE", "EEE", "ME", "CE"],
@@ -108,6 +132,7 @@ const handleSubmit = async (e) => {
   return (
     <div className="student-profile-container">
       <h2>Student Profile</h2>
+
       <form className="student-profile-form" onSubmit={handleSubmit}>
         <div className="profile-pic-section">
           <img
@@ -135,7 +160,11 @@ const handleSubmit = async (e) => {
 
           <div>
             <label>Gender</label>
-            <select name="gender" value={profile.gender} onChange={handleChange}>
+            <select
+              name="gender"
+              value={profile.gender}
+              onChange={handleChange}
+            >
               <option value="">Select Gender</option>
               <option value="Female">Female</option>
               <option value="Male">Male</option>
@@ -145,7 +174,11 @@ const handleSubmit = async (e) => {
 
           <div>
             <label>Degree</label>
-            <select name="degree" value={profile.degree} onChange={handleChange}>
+            <select
+              name="degree"
+              value={profile.degree}
+              onChange={handleChange}
+            >
               <option value="">Select Degree</option>
               {degrees.map((deg) => (
                 <option key={deg} value={deg}>
@@ -165,7 +198,7 @@ const handleSubmit = async (e) => {
             >
               <option value="">Select Specialization</option>
               {profile.degree &&
-                specializations[profile.degree].map((spec) => (
+                specializations[profile.degree]?.map((spec) => (
                   <option key={spec} value={spec}>
                     {spec}
                   </option>
@@ -209,7 +242,7 @@ const handleSubmit = async (e) => {
         </div>
 
         <button type="submit" className="save-btn">
-          Save Profile
+          💾 Save Profile
         </button>
       </form>
     </div>

@@ -5,7 +5,8 @@ const {
   getStudentProfile,
   updateStudentProfile,
 } = require("../controllers/studentController");
-
+const authMiddleware = require("../middleware/authMiddleware");
+const studentCtrl = require("../controllers/studentController");
 const router = express.Router();
 
 // ✅ Set up file upload with multer
@@ -22,6 +23,11 @@ const upload = multer({ storage });
 router.get("/profile", auth, getStudentProfile);
 
 // ✅ Update profile
-router.put("/profile", auth, upload.single("profilePicture"), updateStudentProfile);
+router.put(
+  "/profile",
+  auth,
+  upload.single("profilePicture"),
+  updateStudentProfile
+);
 
 module.exports = router;
