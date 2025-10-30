@@ -90,6 +90,10 @@ const AlumniProfileView = () => {
           src={profile.profilePicture}
           alt="Profile"
           onError={(e) => {
+            // avoid infinite onError loops
+            try {
+              e.target.onerror = null;
+            } catch (err) {}
             e.target.src = "/default-avatar.png"; // fallback if broken
           }}
         />
