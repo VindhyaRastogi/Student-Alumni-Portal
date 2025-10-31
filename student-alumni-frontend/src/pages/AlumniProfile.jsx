@@ -24,6 +24,7 @@ const AlumniProfile = () => {
     gender: "",
     degrees: [{ degree: "", specialization: "", institute: "", batch: "" }],
     linkedin: "",
+    phone: "",
     jobTitle: "",
     company: "",
     location: {
@@ -288,22 +289,15 @@ const AlumniProfile = () => {
           + Add Another Degree
         </button>
 
-        {/* Areas of Interest */}
+        {/* Areas of Interest (open-ended) */}
         <label htmlFor="areasOfInterest">Areas of Interest</label>
-        <select
+        <input
           id="areasOfInterest"
           name="areasOfInterest"
           value={formData.areasOfInterest}
           onChange={handleChange}
-          required
-        >
-          <option value="">Select Interest</option>
-          <option value="AI/ML">AI/ML</option>
-          <option value="Data Science">Data Science</option>
-          <option value="Cybersecurity">Cybersecurity</option>
-          <option value="Software Development">Software Development</option>
-          <option value="Entrepreneurship">Entrepreneurship</option>
-        </select>
+          placeholder="e.g., AI/ML, Data Engineering"
+        />
 
         {/* Mentorship Availability */}
         <label htmlFor="hoursPerWeek">Hours per Week for Mentorship</label>
@@ -342,6 +336,33 @@ const AlumniProfile = () => {
           <option value="Phone">Phone</option>
           <option value="LinkedIn">LinkedIn</option>
         </select>
+
+        {/* Conditional contact fields */}
+        {formData.preferredContact === "Phone" && (
+          <>
+            <label htmlFor="phone">Phone Number</label>
+            <input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="e.g., +91-98765xxxxx"
+            />
+          </>
+        )}
+
+        {formData.preferredContact === "LinkedIn" && (
+          <>
+            <label htmlFor="linkedin">LinkedIn URL</label>
+            <input
+              id="linkedin"
+              name="linkedin"
+              value={formData.linkedin}
+              onChange={handleChange}
+              placeholder="https://www.linkedin.com/in/your-profile"
+            />
+          </>
+        )}
 
         {/* Work Info */}
         <label htmlFor="jobTitle">Current Job Title</label>

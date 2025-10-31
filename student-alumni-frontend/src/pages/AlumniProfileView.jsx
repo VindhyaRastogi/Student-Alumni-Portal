@@ -145,6 +145,12 @@ const AlumniProfileView = () => {
       <p>
         <strong>Company:</strong> {profile.company}
       </p>
+      {profile.preferredContact === "Phone" && profile.phone && (
+        <p><strong>Phone:</strong> {profile.phone}</p>
+      )}
+      {profile.preferredContact === "LinkedIn" && profile.linkedin && (
+        <p><strong>LinkedIn:</strong> <a href={profile.linkedin} target="_blank" rel="noreferrer">{profile.linkedin}</a></p>
+      )}
       <p>
         <strong>Location:</strong> {profile.location?.city},{" "}
         {profile.location?.state}, {profile.location?.country}

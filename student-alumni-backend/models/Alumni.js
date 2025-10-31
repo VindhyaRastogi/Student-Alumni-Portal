@@ -25,6 +25,7 @@ const alumniSchema = new mongoose.Schema({
   hoursPerWeek: Number,
   menteesCapacity: Number,
   preferredContact: String,
+  phone: String,
   profilePicture: String
 }, { timestamps: true });
 
