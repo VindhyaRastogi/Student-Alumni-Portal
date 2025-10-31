@@ -22,9 +22,7 @@ const Login = () => {
     // ✅ Validate IIITD email domain
     const emailPattern = /^[a-zA-Z0-9._%+-]+@iiitd\.ac\.in$/;
     if (!emailPattern.test(formData.email)) {
-      setError(
-        "Please use your official IIITD email ID (ending with @iiitd.ac.in)"
-      );
+      setError("Please use your official IIIT-D email ID only");
       return;
     }
 
