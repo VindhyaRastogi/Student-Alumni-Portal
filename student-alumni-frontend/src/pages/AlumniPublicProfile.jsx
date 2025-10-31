@@ -83,6 +83,12 @@ const AlumniPublicProfile = () => {
       <p><strong>Hours per Week:</strong> {profile.hoursPerWeek}</p>
       <p><strong>Mentees Capacity:</strong> {profile.menteesCapacity}</p>
       <p><strong>Preferred Contact:</strong> {profile.preferredContact}</p>
+      {profile.preferredContact === "Phone" && profile.phone && (
+        <p><strong>Phone:</strong> {profile.phone}</p>
+      )}
+      {profile.preferredContact === "LinkedIn" && profile.linkedin && (
+        <p><strong>LinkedIn:</strong> <a href={profile.linkedin} target="_blank" rel="noreferrer">{profile.linkedin}</a></p>
+      )}
       <p><strong>Job Title:</strong> {profile.jobTitle}</p>
       <p><strong>Company:</strong> {profile.company}</p>
       <p>

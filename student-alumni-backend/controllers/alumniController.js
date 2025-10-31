@@ -3,22 +3,60 @@ const Alumni = require('../models/Alumni');
 // ✅ Save or update alumni profile
 const saveAlumniProfile = async (req, res) => {
   try {
-    const formData = req.body;
+    const formData = req.body || {};
     const profilePicture = req.file ? req.file.filename : null;
+
+    // normalize incoming values
+    const phone = formData.phone || formData.mobile || null;
+    const preferredContact = formData.preferredContact || formData.preferred_contact || null;
 
     let alumni = await Alumni.findOne({ userId: req.user._id });
     if (alumni) {
-      Object.assign(alumni, formData);
+      // assign simple fields explicitly to avoid accidental prototype pollution
+      const updatable = [
+        'gender', 'linkedin', 'jobTitle', 'company', 'areasOfInterest',
+        'hoursPerWeek', 'menteesCapacity', 'preferredContact', 'fullName', 'email'
+      ];
+      updatable.forEach((k) => {
+        if (formData[k] !== undefined) alumni[k] = formData[k];
+      });
+
+      // nested fields: degrees and location
+      if (formData.degrees) alumni.degrees = formData.degrees;
+      if (formData.location) alumni.location = formData.location;
+
+      // phone and profile picture
+      if (phone) alumni.phone = phone;
       if (profilePicture) alumni.profilePicture = profilePicture;
+
+      // ensure fullName/email exist on alumni (copy from user if missing)
+      if (!alumni.fullName && req.user && req.user.fullName) alumni.fullName = req.user.fullName;
+      if (!alumni.email && req.user && req.user.email) alumni.email = req.user.email;
+
       await alumni.save();
     } else {
-      alumni = await Alumni.create({
+      const createObj = {
         userId: req.user._id,
-        ...formData,
-        profilePicture,
-      });
+        fullName: formData.fullName || (req.user && req.user.fullName) || '',
+        email: formData.email || (req.user && req.user.email) || '',
+        gender: formData.gender,
+        degrees: formData.degrees || [],
+        linkedin: formData.linkedin || '',
+        jobTitle: formData.jobTitle || '',
+        company: formData.company || '',
+        location: formData.location || {},
+        areasOfInterest: formData.areasOfInterest || '',
+        hoursPerWeek: formData.hoursPerWeek || null,
+        menteesCapacity: formData.menteesCapacity || null,
+        preferredContact: preferredContact || null,
+        phone: phone || null,
+        profilePicture: profilePicture || null,
+      };
+
+      alumni = await Alumni.create(createObj);
     }
 
+    // return saved alumni
     res.json(alumni);
   } catch (err) {
     console.error(err);
