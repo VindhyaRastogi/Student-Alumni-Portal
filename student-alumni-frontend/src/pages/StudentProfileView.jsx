@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./StudentProfile.css";
 
 const StudentProfileView = () => {
   const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // If we received an updated profile via navigation state from the edit page,
+    // prefer that (so user sees changes immediately) and clear the state.
+    if (location && location.state && location.state.updatedProfile) {
+      setProfile(location.state.updatedProfile);
+      // clear state to avoid reusing it on refresh/navigation
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -21,7 +31,7 @@ const StudentProfileView = () => {
         );
 
         // ✅ Extract correct data from response
-        const data = res.data.user || res.data; 
+        const data = res.data.user || res.data;
 
         // ✅ Fix image path if it's stored as relative URL
         if (data.profilePicture && !data.profilePicture.startsWith("http")) {
@@ -38,7 +48,7 @@ const StudentProfileView = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [location, navigate]);
 
   if (!profile)
     return (
@@ -60,13 +70,27 @@ const StudentProfileView = () => {
       </div>
 
       <div className="profile-details">
-        <p><strong>Full Name:</strong> {profile.name || profile.fullName}</p>
-        <p><strong>Email:</strong> {profile.email}</p>
-        <p><strong>Gender:</strong> {profile.gender}</p>
-        <p><strong>Degree:</strong> {profile.degree}</p>
-        <p><strong>Specialization:</strong> {profile.specialization}</p>
-        <p><strong>Batch:</strong> {profile.batch}</p>
-        <p><strong>Area of Interest:</strong> {profile.areaOfInterest}</p>
+        <p>
+          <strong>Full Name:</strong> {profile.name || profile.fullName}
+        </p>
+        <p>
+          <strong>Email:</strong> {profile.email}
+        </p>
+        <p>
+          <strong>Gender:</strong> {profile.gender}
+        </p>
+        <p>
+          <strong>Degree:</strong> {profile.degree}
+        </p>
+        <p>
+          <strong>Specialization:</strong> {profile.specialization}
+        </p>
+        <p>
+          <strong>Batch:</strong> {profile.batch}
+        </p>
+        <p>
+          <strong>Area of Interest:</strong> {profile.areaOfInterest}
+        </p>
         <p>
           <strong>LinkedIn:</strong>{" "}
           {profile.linkedin ? (

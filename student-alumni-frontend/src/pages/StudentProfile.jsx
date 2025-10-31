@@ -109,8 +109,24 @@ const StudentProfile = () => {
       );
 
       if (res.status === 200 || res.data.success) {
+        // Get the updated profile returned by the backend
+        const updated = res.data.user || res.data;
+
+        // If backend returns a relative profilePicture path, convert to absolute URL
+        if (
+          updated.profilePicture &&
+          !updated.profilePicture.startsWith("http")
+        ) {
+          updated.profilePicture = `${import.meta.env.VITE_API_BASE_URL.replace(
+            "/api",
+            ""
+          )}${updated.profilePicture}`;
+        }
+
         alert("✅ Profile updated successfully!");
-        navigate("/student/profile");
+
+        // Navigate back to the profile view and pass the updated profile in state
+        navigate("/student/profile", { state: { updatedProfile: updated } });
       } else {
         alert("⚠️ Failed to update profile. Please try again.");
       }
