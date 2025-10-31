@@ -13,6 +13,8 @@ import AlumniProfile from "./pages/AlumniProfile";
 import AlumniProfileView from "./pages/AlumniProfileView";
 import AlumniList from "./pages/AlumniList"; // ✅ NEW IMPORT
 import AlumniPublicProfile from "./pages/AlumniPublicProfile"; // ✅ NEW IMPORT
+import StudentList from "./pages/StudentList";
+import StudentPublicProfile from "./pages/StudentPublicProfile";
 const App = () => {
   const location = useLocation();
 
@@ -90,6 +92,16 @@ const App = () => {
           }
         />
 
+        {/* Students list for alumni */}
+        <Route
+          path="/students"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <StudentList />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Student-facing public profile route */}
         <Route
           path="/student/alumni/:id"
@@ -103,7 +115,21 @@ const App = () => {
         {/* Keep existing alumni/:id for other roles if needed (alumni/admin) */}
         <Route
           path="/alumni/:id"
-          element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AlumniPublicProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Student profile for alumni to view */}
+        <Route
+          path="/student/:id"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <StudentPublicProfile />
+            </ProtectedRoute>
+          }
         />
 
         {/* 🧑‍💼 Alumni Dashboard */}
