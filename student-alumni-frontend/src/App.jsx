@@ -13,6 +13,10 @@ import AlumniProfile from "./pages/AlumniProfile";
 import AlumniProfileView from "./pages/AlumniProfileView";
 import AlumniList from "./pages/AlumniList"; // ✅ NEW IMPORT
 import AlumniPublicProfile from "./pages/AlumniPublicProfile"; // ✅ NEW IMPORT
+import AlumniSlots from "./pages/AlumniSlots"; // availability page
+import StudentMeetingRequest from "./pages/StudentMeetingRequest";
+import AlumniMeetings from "./pages/AlumniMeetings";
+import StudentMeetings from "./pages/StudentMeetings";
 import StudentList from "./pages/StudentList";
 import StudentPublicProfile from "./pages/StudentPublicProfile";
 const App = () => {
@@ -29,6 +33,9 @@ const App = () => {
       <Routes>
         {/* 🏠 Home page with integrated Login/Register */}
         <Route path="/" element={<Home />} />
+  {/* support direct links to register/login that reuse Home */}
+  <Route path="/register" element={<Home />} />
+  <Route path="/login" element={<Home />} />
 
         {/* 🔑 Forgot Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -59,6 +66,16 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["alumni"]}>
               <AlumniProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🧑‍ Availability (Alumni only) */}
+        <Route
+          path="/alumni/slots"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniSlots />
             </ProtectedRoute>
           }
         />
@@ -112,6 +129,16 @@ const App = () => {
           }
         />
 
+          {/* Student meeting request (pick a slot and request) */}
+          <Route
+            path="/student/alumni/:alumniId/request"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentMeetingRequest />
+              </ProtectedRoute>
+            }
+          />
+
         {/* Keep existing alumni/:id for other roles if needed (alumni/admin) */}
         <Route
           path="/alumni/:id"
@@ -132,12 +159,32 @@ const App = () => {
           }
         />
 
+        {/* Student meetings (view responses) */}
+        <Route
+          path="/student/meetings"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentMeetings />
+            </ProtectedRoute>
+          }
+        />
+
         {/* 🧑‍💼 Alumni Dashboard */}
         <Route
           path="/alumni/dashboard"
           element={
             <ProtectedRoute allowedRoles={["alumni"]}>
               <AlumniDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Alumni's meetings (accept/cancel/reschedule) */}
+        <Route
+          path="/alumni/meetings"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniMeetings />
             </ProtectedRoute>
           }
         />

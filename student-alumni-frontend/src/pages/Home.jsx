@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import "./Home.css";
@@ -24,7 +24,17 @@ const Home = () => {
   }, [slides.length]);
 
   // Toggle between Login/Register on Home
+  const location = useLocation();
+
+  // Toggle between Login/Register on Home. Default driven by URL so
+  // /register shows the register form and /login shows login.
   const [showRegister, setShowRegister] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname === "/register") setShowRegister(true);
+    else if (location.pathname === "/login") setShowRegister(false);
+    // otherwise keep default (home may choose login by default)
+  }, [location.pathname]);
 
   return (
     <div className="home-root">

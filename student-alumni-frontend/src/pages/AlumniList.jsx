@@ -83,18 +83,22 @@ const AlumniList = () => {
 
           return (
             <div className="alumni-card" key={a._id}>
-              <img src={imgSrc} alt={a.fullName} />
+              <div className="alumni-card-top">
+                <img src={imgSrc} alt={a.fullName} />
+                {/* chat icon - routes to chat with this alumni */}
+                <Link to={`/chats/${a._id}`} className="chat-icon" aria-label={`Chat with ${a.fullName}`}>💬</Link>
+              </div>
+
               <h3>{a.fullName}</h3>
-              <p>
-                {a.jobTitle} @ {a.company}
-              </p>
-              <p>
-                {a.location?.city}, {a.location?.country}
-              </p>
-              <p>
-                <strong>Interests:</strong> {a.areasOfInterest}
-              </p>
-              <Link to={`/student/alumni/${a._id}`}>View Profile</Link>
+              <p>{a.jobTitle} @ {a.company}</p>
+              <p>{a.location?.city}, {a.location?.country}</p>
+              <p><strong>Interests:</strong> {a.areasOfInterest}</p>
+
+              <div className="alumni-card-actions">
+                <Link to={`/student/alumni/${a._id}`} className="btn btn-primary">View Profile</Link>
+                {/* Request Meeting navigates to the student-facing meeting request page we added */}
+                <Link to={`/student/alumni/${a._id}/request`} className="btn btn-secondary">Request Meeting</Link>
+              </div>
             </div>
           );
         })}
