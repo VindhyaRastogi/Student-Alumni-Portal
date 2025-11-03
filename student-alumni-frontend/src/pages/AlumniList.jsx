@@ -49,17 +49,26 @@ const AlumniList = () => {
       {/* Filter Form */}
       <form onSubmit={handleSearch} className="filter-form">
         <input name="name" placeholder="Name" onChange={handleChange} />
-        <input name="company" placeholder="Company / Organization" onChange={handleChange} />
+        <input
+          name="company"
+          placeholder="Company / Organization"
+          onChange={handleChange}
+        />
         <input name="jobTitle" placeholder="Position" onChange={handleChange} />
         <input name="location" placeholder="Location" onChange={handleChange} />
-        <select name="areasOfInterest" onChange={handleChange}>
+        <input
+          name="areasOfInterest"
+          placeholder="Area Of Interest"
+          onChange={handleChange}
+        />
+        {/* <select name="areasOfInterest" onChange={handleChange}>
           <option value="">All Interests</option>
           <option value="AI/ML">AI/ML</option>
           <option value="Data Science">Data Science</option>
           <option value="Cybersecurity">Cybersecurity</option>
           <option value="Software Development">Software Development</option>
           <option value="Entrepreneurship">Entrepreneurship</option>
-        </select>
+        </select> */}
         <button type="submit">Search</button>
       </form>
 

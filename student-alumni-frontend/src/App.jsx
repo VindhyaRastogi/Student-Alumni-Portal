@@ -17,6 +17,8 @@ import AlumniSlots from "./pages/AlumniSlots"; // availability page
 import StudentMeetingRequest from "./pages/StudentMeetingRequest";
 import AlumniMeetings from "./pages/AlumniMeetings";
 import StudentMeetings from "./pages/StudentMeetings";
+import StudentList from "./pages/StudentList";
+import StudentPublicProfile from "./pages/StudentPublicProfile";
 const App = () => {
   const location = useLocation();
 
@@ -107,6 +109,16 @@ const App = () => {
           }
         />
 
+        {/* Students list for alumni */}
+        <Route
+          path="/students"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <StudentList />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Student-facing public profile route */}
         <Route
           path="/student/alumni/:id"
@@ -130,7 +142,21 @@ const App = () => {
         {/* Keep existing alumni/:id for other roles if needed (alumni/admin) */}
         <Route
           path="/alumni/:id"
-          element={<ProtectedRoute><AlumniPublicProfile /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AlumniPublicProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Student profile for alumni to view */}
+        <Route
+          path="/student/:id"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <StudentPublicProfile />
+            </ProtectedRoute>
+          }
         />
 
         {/* Student meetings (view responses) */}

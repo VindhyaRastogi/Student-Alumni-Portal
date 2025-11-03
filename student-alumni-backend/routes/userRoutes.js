@@ -7,7 +7,13 @@ const userCtrl = require("../controllers/userController");
 router.get("/me", authMiddleware.auth, userCtrl.getMe);
 router.put("/me", authMiddleware.auth, userCtrl.updateProfile);
 router.get("/alumni", authMiddleware.auth, userCtrl.listAlumni);
-router.get("/admin/users", authMiddleware.auth, requireRole("admin"), userCtrl.adminListUsers);
-
+router.get("/students", authMiddleware.auth, userCtrl.listStudents);
+router.get("/:id", authMiddleware.auth, userCtrl.getUserById);
+router.get(
+  "/admin/users",
+  authMiddleware.auth,
+  requireRole("admin"),
+  userCtrl.adminListUsers
+);
 
 module.exports = router;
