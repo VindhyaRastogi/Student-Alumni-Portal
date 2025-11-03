@@ -14,21 +14,20 @@ const AlumniDashboard = () => {
       img: "https://cdn-icons-png.flaticon.com/512/3094/3094853.png",
     },
     {
-<<<<<<< HEAD
       title: "Student List",
       link: "/students",
-      // < Link to = "/students" > Student List</ >
-=======
+      img: "https://cdn-icons-png.flaticon.com/512/1250/1250689.png",
+    },
+    {
       title: "My Availability",
       link: "/alumni/slots",
       img: "https://cdn-icons-png.flaticon.com/512/123/123627.png",
     },
-    {
-      title: "History",
-      link: "/alumni/history",
->>>>>>> eace38921020c5b0f9fe415a70e107ad2a78bbf9
-      img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
-    },
+    // {
+    //   title: "History",
+    //   link: "/alumni/history",
+    //   img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
+    // },
     {
       title: "Your Profile",
       link: "/alumni/view-profile",
