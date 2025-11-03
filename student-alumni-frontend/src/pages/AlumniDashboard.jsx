@@ -23,11 +23,11 @@ const AlumniDashboard = () => {
       link: "/alumni/slots",
       img: "https://cdn-icons-png.flaticon.com/512/123/123627.png",
     },
-    // {
-    //   title: "History",
-    //   link: "/alumni/history",
-    //   img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
-    // },
+    {
+      title: "History",
+      link: "/alumni/history",
+      img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
+    },
     {
       title: "Your Profile",
       link: "/alumni/view-profile",
