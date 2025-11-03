@@ -42,7 +42,32 @@ exports.listAlumni = async (req, res) => {
 // list students (public for logged-in users; does NOT return admins)
 exports.listStudents = async (req, res) => {
   try {
-    const students = await User.find({ role: "student" }).select("-password");
+    const { name, degree, batch, areaOfInterest } = req.query || {};
+
+    const query = { role: "student" };
+
+    if (name) {
+      // match fullName partially, case-insensitive
+      query.fullName = { $regex: name, $options: "i" };
+    }
+
+    if (degree) {
+      // degree is stored under profile.degree
+      query["profile.degree"] = { $regex: degree, $options: "i" };
+    }
+
+    if (batch) {
+      query["profile.batch"] = { $regex: batch, $options: "i" };
+    }
+
+    if (areaOfInterest) {
+      query["profile.areaOfInterest"] = {
+        $regex: areaOfInterest,
+        $options: "i",
+      };
+    }
+
+    const students = await User.find(query).select("-password");
     res.json(students);
   } catch (err) {
     console.error("listStudents error:", err);
