@@ -14,6 +14,9 @@ const AlumniDashboard = () => {
       img: "https://cdn-icons-png.flaticon.com/512/3094/3094853.png",
     },
     {
+      title: "Student List",
+      link: "/students",
+      // < Link to = "/students" > Student List</ >
       title: "My Availability",
       link: "/alumni/slots",
       img: "https://cdn-icons-png.flaticon.com/512/123/123627.png",
