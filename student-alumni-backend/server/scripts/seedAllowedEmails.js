@@ -11,8 +11,10 @@ const list = [
   { email: "nandini@iiitd.ac.in", role: "student" },
   { email: "vindhya@iiitd.ac.in", role: "student" },
   { email: "zubiya@iiitd.ac.in", role: "student" },
+  { email: "avani@iiitd.ac.in", role: "student" },
   { email: "ankit@iiitd.ac.in", role: "alumni" },
   { email: "gauri@iiitd.ac.in", role: "alumni" },
+   { email: "deepali@iiitd.ac.in", role: "alumni" },
   { email: "admin@iiitd.ac.in", role: "admin" },
   // add more emails here...
   //   admin@iiitd.ac.in - asdf

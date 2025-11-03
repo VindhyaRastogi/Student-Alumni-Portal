@@ -1,81 +1,203 @@
+/*
+|--------------------------------------------------------------------------
+| Global Container & Typography
+|--------------------------------------------------------------------------
+*/
 .student-profile-container {
-  max-width: 900px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 15px;
-  padding: 30px 40px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-.profile-details p {
-  color: black;
+    max-width: 800px; /* Max width for a clean look */
+    margin: 3rem auto; /* Center on page with good top/bottom spacing */
+    padding: 2rem;
+    background-color: #ffffff; /* White background for the main card */
+    border-radius: 12px; /* Softly rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle, elegant shadow */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .student-profile-container h2 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 25px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid #f0f0f0; /* Light separator line */
+    padding-bottom: 1rem;
 }
 
-.student-profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
+/*
+|--------------------------------------------------------------------------
+| Profile Picture Section (Common to both View and Form)
+|--------------------------------------------------------------------------
+*/
 .profile-pic-section {
-  text-align: center;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
 }
 
 .profile-pic-preview {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #3498db;
-  margin-bottom: 10px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%; /* Perfect circle for the avatar */
+    object-fit: cover;
+    border: 4px solid #4a90e2; /* Highlight with a primary color border */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.profile-pic-preview:hover {
+    transform: scale(1.05);
+}
+
+.profile-pic-section input[type="file"] {
+    margin-top: 1rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    color: #555;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Profile View Details Styling
+|--------------------------------------------------------------------------
+*/
+.profile-details p {
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed #f0f0f0; /* Subtle line between details */
+    margin: 0;
+    display: flex; /* Use flex for alignment */
+    justify-content: space-between; /* Space out key and value */
+    font-size: 1.05rem;
+    color: #555;
+}
+
+.profile-details p:last-child {
+    border-bottom: none;
+}
+
+.profile-details strong {
+    color: #333;
+    font-weight: 600; /* Slightly bolder key */
+    min-width: 150px; /* Ensure keys align */
+    margin-right: 1rem;
+}
+
+.profile-details a {
+    color: #4a90e2; /* Primary color for links */
+    text-decoration: none;
+}
+
+.profile-details a:hover {
+    text-decoration: underline;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Profile Form Styling
+|--------------------------------------------------------------------------
+*/
+.student-profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Spacing between form sections */
 }
 
 .form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for a balanced layout */
+    gap: 1.5rem;
 }
 
-.form-grid label {
-  font-weight: 600;
-  color: #333;
+/* Label and Input Styling */
+.student-profile-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
 }
 
-.form-grid input,
-.form-grid select {
-  width: 100%;
-  padding: 10px;
-  border: 1.5px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: 0.3s;
+.student-profile-form input[type="text"],
+.student-profile-form input[type="email"],
+.student-profile-form input[type="url"],
+.student-profile-form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.form-grid input:focus,
-.form-grid select:focus {
-  border-color: #3498db;
-  outline: none;
-  box-shadow: 0 0 3px #3498db;
+.student-profile-form input:focus,
+.student-profile-form select:focus {
+    border-color: #4a90e2; /* Highlight focus with primary color */
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.2);
+    outline: none;
 }
 
-.save-btn {
-  background-color: #3498db;
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 20px;
-  align-self: center;
-  width: 200px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+/* Read-only inputs should look different but still clean */
+.student-profile-form input[readOnly] {
+    background-color: #f7f7f7;
+    cursor: not-allowed;
+    color: #777;
+    border-style: dashed;
 }
 
-.save-btn:hover {
-  background-color: #2c80b4;
+/*
+|--------------------------------------------------------------------------
+| Button Styling (Common to both View and Form)
+|--------------------------------------------------------------------------
+*/
+.button-container, .save-btn {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.button-container button, .save-btn {
+    background-color: #4a90e2; /* Primary blue color */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.button-container button:hover, .save-btn:hover {
+    background-color: #3a7bd2; /* Darker blue on hover */
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+.button-container button:active, .save-btn:active {
+    transform: translateY(0);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Media Queries for Responsiveness (Single column on smaller screens)
+|--------------------------------------------------------------------------
+*/
+@media (max-width: 650px) {
+    .student-profile-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr; /* Single column layout on small screens */
+    }
+
+    .profile-details p {
+        flex-direction: column; /* Stack key and value */
+        align-items: flex-start;
+    }
+
+    .profile-details strong {
+        margin-bottom: 0.25rem;
+    }
 }

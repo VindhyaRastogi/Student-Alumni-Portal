@@ -14,6 +14,11 @@ const AlumniDashboard = () => {
       img: "https://cdn-icons-png.flaticon.com/512/3094/3094853.png",
     },
     {
+      title: "My Availability",
+      link: "/alumni/slots",
+      img: "https://cdn-icons-png.flaticon.com/512/123/123627.png",
+    },
+    {
       title: "History",
       link: "/alumni/history",
       img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
