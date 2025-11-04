@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 const StudentMeetings = () => {
@@ -47,13 +48,33 @@ const StudentMeetings = () => {
 
       <ul>
         {meetings.map(m => (
-          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12 }}>
-            <div><strong>With:</strong> {m.alumniId?.fullName || (m.alumniId && m.alumniId._doc?.fullName) || 'Alumni'}</div>
-            <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
+          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ width: 56, height: 56, flex: '0 0 56px' }}>
+              {(() => {
+                const alum = m.alumniId || m.alumniId?._doc || {};
+                const pic = alum.profile?.profilePicture || alum.profilePicture || alum.user?.profilePicture || alum._doc?.profilePicture || alum._doc?.profile?.profilePicture;
+                return pic ? (
+                  <img src={pic.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL}${pic}` : pic} alt="alumni" style={{ width: 56, height: 56, borderRadius: 28, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: 56, height: 56, borderRadius: 28, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(alum.fullName || 'A').charAt(0)}</div>
+                );
+              })()}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div><strong>With:</strong> {m.alumniId ? (<Link to={`/student/alumni/${m.alumniId._id || m.alumniId}`}>{m.alumniId.fullName || m.alumniId._doc?.fullName}</Link>) : 'Alumni'}</div>
+              <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
             <div><strong>Status:</strong> {m.status}</div>
             {m.status === 'accepted' && (
               <div style={{ background: '#e6ffed', padding: 8, marginTop: 8, borderRadius: 4 }}>
-                Your meeting request has been accepted by the alumni.
+                <div>Your meeting request has been accepted by the alumni.</div>
+                {m.meetLink && (
+                  <div style={{ marginTop: 8 }}>
+                    <strong>Join meeting: </strong>
+                    <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>
+                      Join Google Meet
+                    </a>
+                  </div>
+                )}
               </div>
             )}
 
@@ -65,6 +86,8 @@ const StudentMeetings = () => {
                 {/* Student can either accept by cancelling original and creating new meeting, or propose another reschedule */}
               </div>
             )}
+
+            </div>
 
             <div style={{ marginTop: 8 }}>
               <button onClick={() => cancel(m._id)}>Cancel</button>

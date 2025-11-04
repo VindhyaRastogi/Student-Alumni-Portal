@@ -48,19 +48,35 @@ const StudentMeetingRequest = () => {
   const handleRequest = async () => {
     if (!selected) return alert("Please select a slot");
     try {
+      console.log('Alumni data:', {
+        alumni,
+        userId: alumni?.userId,
+        _id: alumni?._id,
+        selectedSlot: selected
+      });
       const token = localStorage.getItem("token");
       const payload = {
-        alumniUserId: selected.userId || selected.user || alumni.userId,
-        start: selected.start,
-        end: selected.end,
+        // prefer the alumni.userId (references the User model). fall back to slot.userId or alumni._id
+        alumniUserId: alumni?.userId || selected.userId || selected.user || alumni?._id,
+        // ensure ISO strings are sent
+        start: new Date(selected.start).toISOString(),
+        end: new Date(selected.end).toISOString(),
         message,
       };
       const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings`, payload, { headers: { Authorization: `Bearer ${token}` } });
       alert("Meeting requested — waiting for alumni to accept");
       navigate('/student/meetings');
     } catch (err) {
-      console.error('Request failed', err.response || err);
-      alert(err.response?.data?.message || 'Failed to request meeting');
+      const body = err?.response?.data;
+      console.error('Request failed', body || err);
+      const msg = body?.message || body?.error || err.message || 'Failed to request meeting';
+      console.error('Meeting request failed:', {
+        error: body || err,
+        selectedSlot: selected,
+        alumni,
+        payload
+      });
+      alert(msg);
     }
   };
 

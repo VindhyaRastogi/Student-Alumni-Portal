@@ -7,6 +7,8 @@ if (typeof protect !== 'function') throw new TypeError('protect middleware not f
 
 router.post('/', protect, slotsController.createSlots);
 router.get('/my', protect, slotsController.getMySlots);
+// clear all slots for logged-in user
+router.delete('/clear', protect, slotsController.clearSlots);
 router.delete('/:id', protect, slotsController.deleteSlot);
 router.get('/user/:userId', protect, slotsController.getSlotsByUser);
 
