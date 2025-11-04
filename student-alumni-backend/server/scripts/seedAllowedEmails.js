@@ -11,16 +11,26 @@ const list = [
   { email: "nandini@iiitd.ac.in", role: "student" },
   { email: "vindhya@iiitd.ac.in", role: "student" },
   { email: "zubiya@iiitd.ac.in", role: "student" },
+<<<<<<< HEAD
   { email: "saranya@iiitd.ac.in", role: "student" },
   { email: "ankit@iiitd.ac.in", role: "alumni" },
   { email: "gauri@iiitd.ac.in", role: "alumni" },
    { email: "deepali@iiitd.ac.in", role: "alumni" },
    { email: "krishiv@iiitd.ac.in", role: "alumni" },
+=======
+  { email: "shreya@iiitd.ac.in", role: "student" },
+  { email: "shrey@iiitd.ac.in", role: "student" },
+  { email: "ankit@iiitd.ac.in", role: "alumni" },
+  { email: "gauri@iiitd.ac.in", role: "alumni" },
+  { email: "deepali@iiitd.ac.in", role: "alumni" },
+  { email: "denis@iiitd.ac.in", role: "alumni" },
+>>>>>>> 0d7858d53e45044fadbe7286ae9a6c96426d3964
   { email: "admin@iiitd.ac.in", role: "admin" },
+
   // add more emails here...
   //   admin@iiitd.ac.in - asdf
-  // ankit@iiitd.ac.in - qwerty
-  // nandini@iiitd.ac.in - 1234
+  // ankit@iiitd.ac.in - Ankit@123
+  // nandini@iiitd.ac.in - Nandini@123
   // vindhya@iiitd.ac.in - Vindhya@3
   // zubiya@iiitd.ac.in - Zubiya@123
 ];

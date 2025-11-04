@@ -191,6 +191,42 @@
   box-shadow: 0 10px 24px rgba(11, 97, 184, 0.14);
 }
 
+.remove-btn {
+  margin-left: 8px;
+  text-decoration: none;
+  background: linear-gradient(90deg, #ff4d4f, #d12b2b);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.remove-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(209, 43, 43, 0.18);
+}
+
+.enable-btn {
+  margin-left: 8px;
+  text-decoration: none;
+  background: linear-gradient(90deg, #16a34a, #059669);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.enable-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.18);
+}
+
 @media (max-width: 900px) {
   .admin-filters input,
   .admin-filters select {
