@@ -1,4 +1,4 @@
-const Alumni = require('../models/Alumni');
+const Alumni = require("../models/Alumni");
 
 // ✅ Save or update alumni profile
 const saveAlumniProfile = async (req, res) => {
@@ -8,14 +8,23 @@ const saveAlumniProfile = async (req, res) => {
 
     // normalize incoming values
     const phone = formData.phone || formData.mobile || null;
-    const preferredContact = formData.preferredContact || formData.preferred_contact || null;
+    const preferredContact =
+      formData.preferredContact || formData.preferred_contact || null;
 
     let alumni = await Alumni.findOne({ userId: req.user._id });
     if (alumni) {
       // assign simple fields explicitly to avoid accidental prototype pollution
       const updatable = [
-        'gender', 'linkedin', 'jobTitle', 'company', 'areasOfInterest',
-        'hoursPerWeek', 'menteesCapacity', 'preferredContact', 'fullName', 'email'
+        "gender",
+        "linkedin",
+        "jobTitle",
+        "company",
+        "areasOfInterest",
+        "hoursPerWeek",
+        "menteesCapacity",
+        "preferredContact",
+        "fullName",
+        "email",
       ];
       updatable.forEach((k) => {
         if (formData[k] !== undefined) alumni[k] = formData[k];
@@ -27,40 +36,86 @@ const saveAlumniProfile = async (req, res) => {
 
       // phone and profile picture
       if (phone) alumni.phone = phone;
-      if (profilePicture) alumni.profilePicture = profilePicture;
+      if (profilePicture) {
+        // store with consistent /uploads/ prefix so frontend can use as-is
+        alumni.profilePicture = `/uploads/${profilePicture}`;
+      }
 
       // ensure fullName/email exist on alumni (copy from user if missing)
-      if (!alumni.fullName && req.user && req.user.fullName) alumni.fullName = req.user.fullName;
-      if (!alumni.email && req.user && req.user.email) alumni.email = req.user.email;
+      if (!alumni.fullName && req.user && req.user.fullName)
+        alumni.fullName = req.user.fullName;
+      if (!alumni.email && req.user && req.user.email)
+        alumni.email = req.user.email;
 
       await alumni.save();
+      // also sync a few important fields into the User.profile so that
+      // the User document's updatedAt is touched and admin/list views
+      // that read from User see the latest profile picture without stale cache
+      try {
+        const User = require("../models/User");
+        const user = await User.findById(req.user._id);
+        if (user) {
+          user.profile = user.profile || {};
+          if (profilePicture)
+            user.profile.profilePicture = `/uploads/${profilePicture}`;
+          if (formData.jobTitle) user.profile.jobTitle = formData.jobTitle;
+          if (formData.company) user.profile.company = formData.company;
+          if (formData.location)
+            user.profile.location = formData.location || user.profile.location;
+          await user.save();
+        }
+      } catch (syncErr) {
+        console.warn(
+          "Failed to sync alumni picture into User document:",
+          syncErr.message
+        );
+      }
     } else {
       const createObj = {
         userId: req.user._id,
-        fullName: formData.fullName || (req.user && req.user.fullName) || '',
-        email: formData.email || (req.user && req.user.email) || '',
+        fullName: formData.fullName || (req.user && req.user.fullName) || "",
+        email: formData.email || (req.user && req.user.email) || "",
         gender: formData.gender,
         degrees: formData.degrees || [],
-        linkedin: formData.linkedin || '',
-        jobTitle: formData.jobTitle || '',
-        company: formData.company || '',
+        linkedin: formData.linkedin || "",
+        jobTitle: formData.jobTitle || "",
+        company: formData.company || "",
         location: formData.location || {},
-        areasOfInterest: formData.areasOfInterest || '',
+        areasOfInterest: formData.areasOfInterest || "",
         hoursPerWeek: formData.hoursPerWeek || null,
         menteesCapacity: formData.menteesCapacity || null,
         preferredContact: preferredContact || null,
         phone: phone || null,
-        profilePicture: profilePicture || null,
+        profilePicture: profilePicture ? `/uploads/${profilePicture}` : null,
       };
 
       alumni = await Alumni.create(createObj);
+      // also create/sync into User.profile for consistency
+      try {
+        const User = require("../models/User");
+        const user = await User.findById(req.user._id);
+        if (user) {
+          user.profile = user.profile || {};
+          if (alumni.profilePicture)
+            user.profile.profilePicture = alumni.profilePicture;
+          if (alumni.jobTitle) user.profile.jobTitle = alumni.jobTitle;
+          if (alumni.company) user.profile.company = alumni.company;
+          if (alumni.location) user.profile.location = alumni.location;
+          await user.save();
+        }
+      } catch (syncErr) {
+        console.warn(
+          "Failed to sync new alumni into User document:",
+          syncErr.message
+        );
+      }
     }
 
     // return saved alumni
     res.json(alumni);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error saving alumni profile' });
+    res.status(500).json({ message: "Server error saving alumni profile" });
   }
 };
 
@@ -72,7 +127,7 @@ const getAlumniProfile = async (req, res) => {
     res.json(alumni);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error fetching alumni profile' });
+    res.status(500).json({ message: "Server error fetching alumni profile" });
   }
 };
 
@@ -86,7 +141,8 @@ const getAlumniList = async (req, res) => {
     if (name) query.fullName = { $regex: name, $options: "i" };
     if (jobTitle) query.jobTitle = { $regex: jobTitle, $options: "i" };
     if (company) query.company = { $regex: company, $options: "i" };
-    if (areasOfInterest) query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
+    if (areasOfInterest)
+      query.areasOfInterest = { $regex: areasOfInterest, $options: "i" };
 
     if (location) {
       query.$or = [
@@ -116,4 +172,9 @@ const getAlumniById = async (req, res) => {
   }
 };
 
-module.exports = { saveAlumniProfile, getAlumniProfile, getAlumniList, getAlumniById };
+module.exports = {
+  saveAlumniProfile,
+  getAlumniProfile,
+  getAlumniList,
+  getAlumniById,
+};

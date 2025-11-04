@@ -31,6 +31,10 @@ router.get("/users", auth, verifyAdmin, async (req, res) => {
                 "";
               userObj.profile.profilePicture =
                 userObj.profile.profilePicture || alum.profilePicture || "";
+              // expose alumni's updatedAt so frontend can use it for cache-busting when profile picture lives in Alumni doc
+              if (alum.updatedAt) {
+                userObj.profile._updatedAt = alum.updatedAt;
+              }
             }
           } catch (innerErr) {
             // ignore and return user as-is
