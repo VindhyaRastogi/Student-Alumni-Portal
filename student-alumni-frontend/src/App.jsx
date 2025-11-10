@@ -19,6 +19,7 @@ import AlumniMeetings from "./pages/AlumniMeetings";
 import StudentMeetings from "./pages/StudentMeetings";
 import StudentList from "./pages/StudentList";
 import StudentPublicProfile from "./pages/StudentPublicProfileAdmin";
+import AdminProfile from "./pages/AdminProfile";
 const App = () => {
   const location = useLocation();
 
@@ -205,6 +206,16 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin profile (edit) */}
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminProfile />
             </ProtectedRoute>
           }
         />

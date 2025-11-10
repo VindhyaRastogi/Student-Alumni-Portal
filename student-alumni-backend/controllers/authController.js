@@ -49,14 +49,10 @@ exports.register = async (req, res) => {
     });
 
     const token = signToken(user);
-    const userSafe = {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-    };
-
-    res.json({ user: userSafe, token });
+    // return the full user document (without password) so the client has
+    // profile fields (profilePicture, etc.) available after register
+    const fresh = await User.findById(user._id).select("-password");
+    res.json({ user: fresh, token });
   } catch (err) {
     console.error("register error:", err);
     res.status(500).json({ message: "Server error" });
@@ -86,14 +82,9 @@ exports.login = async (req, res) => {
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = signToken(user);
-    const userSafe = {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-    };
-
-    res.json({ user: userSafe, token });
+    // return full user document (without password) so client has profile data
+    const fresh = await User.findById(user._id).select("-password");
+    res.json({ user: fresh, token });
   } catch (err) {
     console.error("login error:", err);
     res.status(500).json({ message: "Server error" });

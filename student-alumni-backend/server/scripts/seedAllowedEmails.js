@@ -18,6 +18,9 @@ const list = [
   { email: "deepali@iiitd.ac.in", role: "alumni" },
   { email: "denis@iiitd.ac.in", role: "alumni" },
   { email: "admin@iiitd.ac.in", role: "admin" },
+  { email: "admin0@iiitd.ac.in", role: "admin" },
+  { email: "admin1@iiitd.ac.in", role: "admin" },
+  { email: "admin2@iiitd.ac.in", role: "admin" },
 
   // add more emails here...
   //   admin@iiitd.ac.in - asdf

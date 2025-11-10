@@ -16,12 +16,34 @@ exports.getMe = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const updates = req.body || {};
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: { profile: updates, profileCompleted: true } },
-      { new: true }
-    ).select("-password");
-    res.json(user);
+
+    // Find the user so we can merge profile fields instead of overwriting.
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // If fullName provided at top-level, update it.
+    if (
+      typeof updates.fullName === "string" &&
+      updates.fullName.trim() !== ""
+    ) {
+      user.fullName = updates.fullName;
+    }
+
+    // Merge other profile fields into existing profile object instead of
+    // replacing the entire object. This preserves existing data like
+    // profile.profilePicture when the request only contains some fields.
+    const profileUpdates = { ...updates };
+    // remove top-level fullName from profileUpdates if present
+    delete profileUpdates.fullName;
+
+    user.profile = { ...(user.profile || {}), ...(profileUpdates || {}) };
+    user.profileCompleted = true;
+
+    await user.save();
+
+    const ret = user.toObject();
+    delete ret.password;
+    res.json(ret);
   } catch (err) {
     console.error("updateProfile error:", err);
     res.status(500).json({ message: "Server error" });
@@ -112,6 +134,33 @@ exports.getUserById = async (req, res) => {
     res.json(profileData);
   } catch (err) {
     console.error("getUserById error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// upload profile picture for current user (multipart/form-data with field 'profilePicture')
+exports.uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id)
+      return res.status(401).json({ message: "Unauthorized" });
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // store path with /uploads prefix
+    const filename = req.file.filename;
+    user.profile = user.profile || {};
+    user.profile.profilePicture = `/uploads/${filename}`;
+
+    await user.save();
+
+    // return updated user (without password)
+    const ret = user.toObject();
+    delete ret.password;
+    res.json(ret);
+  } catch (err) {
+    console.error("uploadProfilePhoto error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
