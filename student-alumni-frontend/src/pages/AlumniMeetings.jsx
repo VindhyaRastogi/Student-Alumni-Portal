@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 const AlumniMeetings = () => {
@@ -63,11 +64,31 @@ const AlumniMeetings = () => {
       {meetings.length === 0 && <p>No meetings</p>}
       <ul>
         {meetings.map(m => (
-          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12 }}>
-            <div><strong>With:</strong> {m.studentId?._doc?.fullName || m.studentId?.fullName || 'Student'}</div>
-            <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
-            <div><strong>Status:</strong> {m.status}</div>
-            <div><strong>Message:</strong> {m.message}</div>
+          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ width: 56, height: 56, flex: '0 0 56px' }}>
+              {(() => {
+                const stu = m.studentId || m.studentId?._doc || {};
+                const pic = stu.profile?.profilePicture || stu.profilePicture || stu.user?.profilePicture || stu._doc?.profilePicture || stu._doc?.profile?.profilePicture;
+                return pic ? (
+                  <img src={pic.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL}${pic}` : pic} alt="student" style={{ width: 56, height: 56, borderRadius: 28, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: 56, height: 56, borderRadius: 28, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(stu.fullName || 'S').charAt(0)}</div>
+                );
+              })()}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div><strong>With:</strong> {m.studentId ? (<Link to={`/student/${m.studentId._id || m.studentId}`}>{m.studentId.fullName || m.studentId._doc?.fullName}</Link>) : 'Student'}</div>
+              <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
+              <div><strong>Status:</strong> {m.status}</div>
+              <div><strong>Message:</strong> {m.message}</div>
+            {m.status === 'accepted' && m.meetLink && (
+              <div style={{ marginTop: 8, background: '#e6ffed', padding: 8, borderRadius: 4 }}>
+                <strong>Meeting Link: </strong>
+                <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>
+                  Join Google Meet
+                </a>
+              </div>
+            )}
             {m.status === 'pending' && (
               <div style={{ marginTop: 8 }}>
                 <button onClick={() => accept(m._id)}>Accept</button>
@@ -88,6 +109,8 @@ const AlumniMeetings = () => {
                 </div>
               </div>
             )}
+
+            </div>
 
             {rescheduleTarget === m._id && (
               <div style={{ marginTop: 8 }}>

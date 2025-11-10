@@ -148,3 +148,15 @@ exports.deleteSlot = async (req, res) => {
     res.status(500).json({ message: 'Server error deleting slot' });
   }
 };
+
+// delete all slots for the logged-in user
+exports.clearSlots = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const result = await Slot.deleteMany({ userId });
+    res.json({ deletedCount: result.deletedCount });
+  } catch (err) {
+    console.error('Error clearing slots:', err && err.message);
+    res.status(500).json({ message: 'Server error clearing slots' });
+  }
+};

@@ -25,6 +25,29 @@ const AlumniSlots = () => {
     }
   };
 
+  const deleteSlot = async (id) => {
+    if (!confirm('Delete this slot?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchMySlots();
+    } catch (err) {
+      console.error('Error deleting slot', err);
+      alert('Failed to delete slot');
+    }
+  };
+
+  const clearAllSlots = async () => {
+    if (!confirm('Clear all your slots? This cannot be undone.')) return;
+    try {
+      const res = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/clear`, { headers: { Authorization: `Bearer ${token}` } });
+      alert(`Deleted ${res.data.deletedCount || 0} slot(s)`);
+      fetchMySlots();
+    } catch (err) {
+      console.error('Error clearing slots', err);
+      alert('Failed to clear slots');
+    }
+  };
+
   const addTempSlot = () => {
     if (!date || !startTime || !endTime) {
       alert("Please select date, start time and end time");
@@ -104,20 +127,30 @@ const AlumniSlots = () => {
       <h2>My Available Slots</h2>
 
       {mySlots.length > 0 ? (
-        <ul>
-          {mySlots.map((s, i) => {
-            // s is expected to be an object with start and end ISO dates
-            let display = s;
-            try {
-              const start = new Date(s.start);
-              const end = new Date(s.end);
-              display = `${start.toLocaleString()} - ${end.toLocaleTimeString()}`;
-            } catch (e) {
-              display = JSON.stringify(s);
-            }
-            return <li key={i}>{display}</li>;
-          })}
-        </ul>
+        <div>
+          <div style={{ marginBottom: 12 }}>
+            <button onClick={clearAllSlots} className="save-btn">Clear all slots</button>
+          </div>
+          <ul>
+            {mySlots.map((s) => {
+              // s is expected to be an object with start and end ISO dates
+              let display = s;
+              try {
+                const start = new Date(s.start);
+                const end = new Date(s.end);
+                display = `${start.toLocaleString()} - ${end.toLocaleTimeString()}`;
+              } catch (e) {
+                display = JSON.stringify(s);
+              }
+              return (
+                <li key={s._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{display}</span>
+                  <button onClick={() => deleteSlot(s._id)} style={{ marginLeft: 12 }}>Delete</button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       ) : (
         <p>No available slots yet.</p>
       )}
