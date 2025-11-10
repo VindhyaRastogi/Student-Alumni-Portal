@@ -63,7 +63,7 @@ const StudentProfileView = () => {
 
       <div className="profile-pic-section">
         <img
-          src={profile.profilePicture || "/default-avatar.png"}
+          src={profile.profilePicture || "/default-avatar.svg"}
           alt="Profile"
           className="profile-pic-preview"
         />

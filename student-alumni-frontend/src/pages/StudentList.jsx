@@ -62,20 +62,38 @@ const StudentList = () => {
           const apiBase = import.meta.env.VITE_API_BASE_URL || "";
           const apiRoot = apiBase.replace(/\/api\/?$/i, "");
 
-          // backend may return profilePicture either as full path or relative; handle both
-          let imgSrc = "/default-avatar.png";
-          if (s.profile && s.profile.profilePicture) {
-            const pic = s.profile.profilePicture;
-            imgSrc = pic.startsWith("http") ? pic : `${apiRoot}${pic}`;
-          } else if (s.profilePicture) {
-            imgSrc = s.profilePicture.startsWith("http")
-              ? s.profilePicture
-              : `${apiRoot}/uploads/${s.profilePicture}`;
-          }
+          const resolvePic = (val) => {
+            if (!val) return null;
+            if (val.startsWith("http")) return val;
+            if (val.startsWith("/")) return `${apiRoot}${val}`;
+            if (val.includes("/uploads/"))
+              return `${apiRoot}/${val}`.replace(/([^:]\/)\//g, "$1");
+            return `${apiRoot}/uploads/${val}`;
+          };
+
+          const cand = s.profile?.profilePicture || s.profilePicture || null;
+          let imgSrc = resolvePic(cand) || "/default-avatar.svg";
+          try {
+            const t =
+              (s.profile && s.profile._updatedAt) || s.updatedAt || null;
+            const tm = t ? new Date(t).getTime() : null;
+            if (tm && imgSrc && !imgSrc.includes("default-avatar")) {
+              imgSrc = `${imgSrc}${imgSrc.includes("?") ? "&" : "?"}v=${tm}`;
+            }
+          } catch (err) {}
 
           return (
             <div className="alumni-card" key={s._id}>
-              <img src={imgSrc} alt={s.fullName || s.name} />
+              <img
+                src={imgSrc}
+                alt={s.fullName || s.name}
+                onError={(e) => {
+                  try {
+                    e.target.onerror = null;
+                  } catch (err) {}
+                  e.target.src = "/default-avatar.svg";
+                }}
+              />
               <h3>{s.fullName || s.name}</h3>
               <p>
                 <strong>Degree:</strong> {s.profile?.degree || s.degree || "-"}

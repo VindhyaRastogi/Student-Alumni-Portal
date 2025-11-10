@@ -152,7 +152,7 @@ const StudentProfile = () => {
       <form className="student-profile-form" onSubmit={handleSubmit}>
         <div className="profile-pic-section">
           <img
-            src={preview || "/default-avatar.png"}
+            src={preview || "/default-avatar.svg"}
             alt="Profile Preview"
             className="profile-pic-preview"
           />

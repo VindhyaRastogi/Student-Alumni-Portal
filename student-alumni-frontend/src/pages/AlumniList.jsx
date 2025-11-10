@@ -77,27 +77,75 @@ const AlumniList = () => {
         {alumni.map((a) => {
           const apiBase = import.meta.env.VITE_API_BASE_URL || "";
           const apiRoot = apiBase.replace(/\/api\/?$/i, "");
-          const imgSrc = a.profilePicture
-            ? `${apiRoot}/uploads/${a.profilePicture}`
-            : "/default-avatar.png";
+
+          const resolvePic = (val) => {
+            if (!val) return null;
+            if (val.startsWith("http")) return val;
+            if (val.startsWith("/")) return `${apiRoot}${val}`;
+            if (val.includes("/uploads/"))
+              return `${apiRoot}/${val}`.replace(/([^:]\/)\//g, "$1");
+            return `${apiRoot}/uploads/${val}`;
+          };
+
+          const cand =
+            a.profilePicture || (a.profile && a.profile.profilePicture) || null;
+          let imgSrc = resolvePic(cand) || "/default-avatar.svg";
+          // cache-bust using alumni.updatedAt if present
+          try {
+            const t = a.updatedAt ? new Date(a.updatedAt).getTime() : null;
+            if (t && imgSrc && !imgSrc.includes("default-avatar")) {
+              imgSrc = `${imgSrc}${imgSrc.includes("?") ? "&" : "?"}v=${t}`;
+            }
+          } catch (err) {}
 
           return (
             <div className="alumni-card" key={a._id}>
               <div className="alumni-card-top">
-                <img src={imgSrc} alt={a.fullName} />
+                <img
+                  src={imgSrc}
+                  alt={a.fullName}
+                  onError={(e) => {
+                    try {
+                      e.target.onerror = null;
+                    } catch (err) {}
+                    e.target.src = "/default-avatar.svg";
+                  }}
+                />
                 {/* chat icon - routes to chat with this alumni */}
-                <Link to={`/chats/${a._id}`} className="chat-icon" aria-label={`Chat with ${a.fullName}`}>💬</Link>
+                <Link
+                  to={`/chats/${a._id}`}
+                  className="chat-icon"
+                  aria-label={`Chat with ${a.fullName}`}
+                >
+                  💬
+                </Link>
               </div>
 
               <h3>{a.fullName}</h3>
-              <p>{a.jobTitle} @ {a.company}</p>
-              <p>{a.location?.city}, {a.location?.country}</p>
-              <p><strong>Interests:</strong> {a.areasOfInterest}</p>
+              <p>
+                {a.jobTitle} @ {a.company}
+              </p>
+              <p>
+                {a.location?.city}, {a.location?.country}
+              </p>
+              <p>
+                <strong>Interests:</strong> {a.areasOfInterest}
+              </p>
 
               <div className="alumni-card-actions">
-                <Link to={`/student/alumni/${a._id}`} className="btn btn-primary">View Profile</Link>
+                <Link
+                  to={`/student/alumni/${a._id}`}
+                  className="btn btn-primary"
+                >
+                  View Profile
+                </Link>
                 {/* Request Meeting navigates to the student-facing meeting request page we added */}
-                <Link to={`/student/alumni/${a._id}/request`} className="btn btn-secondary">Request Meeting</Link>
+                <Link
+                  to={`/student/alumni/${a._id}/request`}
+                  className="btn btn-secondary"
+                >
+                  Request Meeting
+                </Link>
               </div>
             </div>
           );

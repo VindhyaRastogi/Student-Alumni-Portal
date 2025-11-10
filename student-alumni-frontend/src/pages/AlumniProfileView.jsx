@@ -24,15 +24,15 @@ const AlumniProfileView = () => {
         let updatedProfile = res.data;
 
         // compute API root (strip trailing /api if present)
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
-  const apiRoot = apiBase.replace(/\/api\/?$/i, "");
+        const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+        const apiRoot = apiBase.replace(/\/api\/?$/i, "");
         if (updatedProfile.profilePicture) {
           const pic = updatedProfile.profilePicture;
           if (!pic.startsWith("http")) {
             updatedProfile.profilePicture = `${apiRoot}/uploads/${pic}`;
           }
         } else {
-          updatedProfile.profilePicture = "/default-avatar.png";
+          updatedProfile.profilePicture = "/default-avatar.svg";
         }
 
         // If fullName missing on alumni doc, fall back to user stored in localStorage
@@ -61,16 +61,20 @@ const AlumniProfileView = () => {
       let updatedProfile = state.profile;
       const apiBase = import.meta.env.VITE_API_BASE_URL || "";
       const apiRoot = apiBase.replace(/\/api\/?$/i, "");
-      if (updatedProfile.profilePicture && !updatedProfile.profilePicture.startsWith("http")) {
+      if (
+        updatedProfile.profilePicture &&
+        !updatedProfile.profilePicture.startsWith("http")
+      ) {
         updatedProfile.profilePicture = `${apiRoot}/uploads/${updatedProfile.profilePicture}`;
       } else if (!updatedProfile.profilePicture) {
-        updatedProfile.profilePicture = "/default-avatar.png";
+        updatedProfile.profilePicture = "/default-avatar.svg";
       }
       if (!updatedProfile.fullName) {
         const stored = localStorage.getItem("user");
         if (stored) {
           const storedUser = JSON.parse(stored);
-          if (storedUser && storedUser.fullName) updatedProfile.fullName = storedUser.fullName;
+          if (storedUser && storedUser.fullName)
+            updatedProfile.fullName = storedUser.fullName;
         }
       }
       setProfile(updatedProfile);
@@ -94,7 +98,7 @@ const AlumniProfileView = () => {
             try {
               e.target.onerror = null;
             } catch (err) {}
-            e.target.src = "/default-avatar.png"; // fallback if broken
+            e.target.src = "/default-avatar.svg"; // fallback if broken
           }}
         />
       </div>
@@ -146,10 +150,17 @@ const AlumniProfileView = () => {
         <strong>Company:</strong> {profile.company}
       </p>
       {profile.preferredContact === "Phone" && profile.phone && (
-        <p><strong>Phone:</strong> {profile.phone}</p>
+        <p>
+          <strong>Phone:</strong> {profile.phone}
+        </p>
       )}
       {profile.preferredContact === "LinkedIn" && profile.linkedin && (
-        <p><strong>LinkedIn:</strong> <a href={profile.linkedin} target="_blank" rel="noreferrer">{profile.linkedin}</a></p>
+        <p>
+          <strong>LinkedIn:</strong>{" "}
+          <a href={profile.linkedin} target="_blank" rel="noreferrer">
+            {profile.linkedin}
+          </a>
+        </p>
       )}
       <p>
         <strong>Location:</strong> {profile.location?.city},{" "}

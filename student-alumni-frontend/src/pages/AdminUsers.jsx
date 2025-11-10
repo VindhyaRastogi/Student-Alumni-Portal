@@ -186,7 +186,38 @@ const AdminUsers = () => {
             const pic =
               resolvePic(user.profile && user.profile.profilePicture) ||
               resolvePic(user.profilePicture) ||
-              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+              "/default-avatar.svg";
+
+            // Prefer the user's updated picture and add a small cache-buster based on updatedAt
+            const getAvatar = (u) => {
+              const cand =
+                (u.profile && u.profile.profilePicture) ||
+                u.profilePicture ||
+                null;
+              const resolved =
+                resolvePic(cand) ||
+                (u.profile &&
+                  u.profile.profilePicture &&
+                  String(u.profile.profilePicture)) ||
+                null;
+              if (!resolved) return "/default-avatar.svg";
+              // use updatedAt if available to bust browser cache when profile changes
+              try {
+                // prefer profile-level updatedAt (from Alumni merge) then user.updatedAt
+                const tVal = (u.profile && u.profile._updatedAt) || u.updatedAt;
+                const t = tVal ? new Date(tVal).getTime() : null;
+                if (t) {
+                  return `${resolved}${
+                    resolved.includes("?") ? "&" : "?"
+                  }v=${t}`;
+                }
+              } catch (err) {
+                // ignore and return resolved
+              }
+              return resolved;
+            };
+
+            const avatarSrc = getAvatar(user);
 
             // prepare image candidate urls to try when loading fails
             const origVal =
@@ -216,7 +247,7 @@ const AdminUsers = () => {
               <tr key={user._id}>
                 <td>
                   <img
-                    src={pic}
+                    src={avatarSrc}
                     alt="Profile"
                     className="profile-img"
                     data-candidates={JSON.stringify(candidates)}
@@ -232,11 +263,11 @@ const AdminUsers = () => {
                           e.target.src = c[idx];
                         } else {
                           e.target.onerror = null;
-                          e.target.src = "/default-avatar.png";
+                          e.target.src = "/default-avatar.svg";
                         }
                       } catch (err) {
                         e.target.onerror = null;
-                        e.target.src = "/default-avatar.png";
+                        e.target.src = "/default-avatar.svg";
                       }
                     }}
                   />
@@ -321,6 +352,7 @@ const AdminUsers = () => {
                             ? `/alumni/${user._id}`
                             : `/student/${user._id}`
                         }
+                        state={{ fromAdmin: true }}
                         className="view-btn"
                       >
                         View
