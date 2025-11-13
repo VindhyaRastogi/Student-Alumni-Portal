@@ -107,7 +107,12 @@ const getAlumniList = async (req, res) => {
 // ✅ Get alumni profile by ID (for "View Profile")
 const getAlumniById = async (req, res) => {
   try {
-    const alumni = await Alumni.findById(req.params.id);
+    // First try: treat param as Alumni._id
+    let alumni = await Alumni.findById(req.params.id);
+    // Second try: param might be a User._id (some frontends/linkers pass user id)
+    if (!alumni) {
+      alumni = await Alumni.findOne({ userId: req.params.id });
+    }
     if (!alumni) return res.status(404).json({ message: "Alumni not found" });
     res.json(alumni);
   } catch (err) {

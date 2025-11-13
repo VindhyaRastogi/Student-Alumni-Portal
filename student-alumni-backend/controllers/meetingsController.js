@@ -1,5 +1,7 @@
 const Meeting = require('../models/Meeting');
 const Slot = require('../models/Slot');
+const Alumni = require('../models/Alumni');
+const Student = require('../models/Student');
 
 // student requests a meeting with alumni for a specific slot
 exports.requestMeeting = async (req, res) => {
@@ -21,7 +23,18 @@ exports.requestMeeting = async (req, res) => {
     }
 
     const meeting = await Meeting.create({ studentId, alumniId: alumniUserId, start: startDt, end: endDt, message });
-    res.json({ meeting });
+
+    // populate and attach deterministic doc ids for frontend routing
+    const populated = await Meeting.findById(meeting._id)
+      .populate('studentId', 'fullName email')
+      .populate('alumniId', 'fullName email');
+    const meetingObj = populated.toObject();
+    const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
+    const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
+    if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
+    if (studentDoc) meetingObj.studentDocId = studentDoc._id;
+
+    res.json({ meeting: meetingObj });
   } catch (err) {
     console.error('Error requesting meeting:', err);
     res.status(500).json({ message: 'Server error creating meeting' });
@@ -36,7 +49,18 @@ exports.getMyMeetings = async (req, res) => {
       .sort({ start: 1 })
       .populate('studentId', 'fullName email')
       .populate('alumniId', 'fullName email');
-    res.json({ meetings });
+
+    // attach deterministic doc ids to each meeting
+    const meetingsWithDocs = await Promise.all(meetings.map(async (m) => {
+      const mo = m.toObject();
+      const alumniDoc = await Alumni.findOne({ userId: mo.alumniId && mo.alumniId._id }).select('_id');
+      const studentDoc = await Student.findOne({ userId: mo.studentId && mo.studentId._id }).select('_id');
+      if (alumniDoc) mo.alumniDocId = alumniDoc._id;
+      if (studentDoc) mo.studentDocId = studentDoc._id;
+      return mo;
+    }));
+
+    res.json({ meetings: meetingsWithDocs });
   } catch (err) {
     console.error('Error fetching meetings:', err);
     res.status(500).json({ message: 'Server error fetching meetings' });
@@ -52,14 +76,25 @@ exports.acceptMeeting = async (req, res) => {
     if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
     if (String(meeting.alumniId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
 
-    meeting.status = 'accepted';
+  meeting.status = 'accepted';
     // clear any proposals
     meeting.proposedStart = undefined;
     meeting.proposedEnd = undefined;
     meeting.proposer = undefined;
     meeting.rescheduleMessage = undefined;
     await meeting.save();
-    res.json({ meeting });
+
+    // populate and attach doc ids
+    const populated = await Meeting.findById(meeting._id)
+      .populate('studentId', 'fullName email')
+      .populate('alumniId', 'fullName email');
+    const meetingObj = populated.toObject();
+    const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
+    const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
+    if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
+    if (studentDoc) meetingObj.studentDocId = studentDoc._id;
+
+    res.json({ meeting: meetingObj });
   } catch (err) {
     console.error('Error accepting meeting:', err);
     res.status(500).json({ message: 'Server error accepting meeting' });
@@ -77,7 +112,18 @@ exports.cancelMeeting = async (req, res) => {
 
     meeting.status = 'cancelled';
     await meeting.save();
-    res.json({ meeting });
+
+    // populate and attach doc ids
+    const populated = await Meeting.findById(meeting._id)
+      .populate('studentId', 'fullName email')
+      .populate('alumniId', 'fullName email');
+    const meetingObj = populated.toObject();
+    const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
+    const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
+    if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
+    if (studentDoc) meetingObj.studentDocId = studentDoc._id;
+
+    res.json({ meeting: meetingObj });
   } catch (err) {
     console.error('Error cancelling meeting:', err);
     res.status(500).json({ message: 'Server error cancelling meeting' });
@@ -115,7 +161,17 @@ exports.proposeReschedule = async (req, res) => {
     meeting.status = 'reschedule_requested';
     await meeting.save();
 
-    res.json({ meeting });
+    // populate and attach doc ids
+    const populated = await Meeting.findById(meeting._id)
+      .populate('studentId', 'fullName email')
+      .populate('alumniId', 'fullName email');
+    const meetingObj = populated.toObject();
+    const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
+    const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
+    if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
+    if (studentDoc) meetingObj.studentDocId = studentDoc._id;
+
+    res.json({ meeting: meetingObj });
   } catch (err) {
     console.error('Error proposing reschedule:', err);
     res.status(500).json({ message: 'Server error proposing reschedule' });

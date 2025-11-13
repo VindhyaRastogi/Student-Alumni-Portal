@@ -92,7 +92,7 @@ exports.getUserById = async (req, res) => {
     const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const profileData = {
+    let profileData = {
       name: user.fullName,
       email: user.email,
       ...(user.profile || {}),
@@ -102,11 +102,7 @@ exports.getUserById = async (req, res) => {
     const Student = require("../models/Student");
     const studentDoc = await Student.findOne({ userId: user._id }).lean();
     if (studentDoc) {
-      profileData = {
-        name: profileData.name,
-        email: profileData.email,
-        ...studentDoc,
-      };
+      profileData = Object.assign({}, { name: profileData.name, email: profileData.email }, studentDoc);
     }
 
     res.json(profileData);

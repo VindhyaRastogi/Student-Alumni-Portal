@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 const StudentMeetings = () => {
@@ -48,7 +49,18 @@ const StudentMeetings = () => {
       <ul>
         {meetings.map(m => (
           <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12 }}>
-            <div><strong>With:</strong> {m.alumniId?.fullName || (m.alumniId && m.alumniId._doc?.fullName) || 'Alumni'}</div>
+            <div>
+              <strong>With:</strong>{' '}
+              {m.alumniId ? (
+                // meetings store alumni as User._id and the Alumni profile is populated into user.profile
+                // prefer linking to the Alumni document id so the public profile route can load correctly
+                <Link to={`/student/alumni/${m.alumniId?.profile?._id || m.alumniId?._id || m.alumniId}`}> 
+                  {m.alumniId.fullName || m.alumniId._doc?.fullName || 'Alumni'}
+                </Link>
+              ) : (
+                'Alumni'
+              )}
+            </div>
             <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
             <div><strong>Status:</strong> {m.status}</div>
             {m.status === 'accepted' && (

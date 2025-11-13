@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const AlumniMeetings = () => {
@@ -8,6 +9,7 @@ const AlumniMeetings = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [rescheduleSlot, setRescheduleSlot] = useState(null);
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
 
   const fetch = async () => {
     try {
@@ -64,17 +66,31 @@ const AlumniMeetings = () => {
       <ul>
         {meetings.map(m => (
           <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12 }}>
-            <div><strong>With:</strong> {m.studentId?._doc?.fullName || m.studentId?.fullName || 'Student'}</div>
+            <div>
+              <strong>With:</strong>{' '}
+              {m.studentId ? (
+                <Link to={`/student/${m.studentId._id || m.studentId}`}>{m.studentId?._doc?.fullName || m.studentId?.fullName || 'Student'}</Link>
+              ) : (
+                'Student'
+              )}
+            </div>
             <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
             <div><strong>Status:</strong> {m.status}</div>
             <div><strong>Message:</strong> {m.message}</div>
-            {m.status === 'pending' && (
-              <div style={{ marginTop: 8 }}>
-                <button onClick={() => accept(m._id)}>Accept</button>
-                <button onClick={() => cancel(m._id)}>Cancel</button>
-                <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
-              </div>
-            )}
+                  {m.status === 'pending' && (
+                    <div style={{ marginTop: 8 }}>
+                      <button onClick={() => accept(m._id)}>Accept</button>
+                      <button onClick={() => cancel(m._id)}>Cancel</button>
+                      <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                    </div>
+                  )}
+
+                  {m.status === 'accepted' && (
+                    <div style={{ marginTop: 8 }}>
+                      <button onClick={() => cancel(m._id)}>Cancel</button>
+                      <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                    </div>
+                  )}
 
             {m.status === 'reschedule_requested' && (
               <div style={{ marginTop: 8 }}>
@@ -92,6 +108,9 @@ const AlumniMeetings = () => {
             {rescheduleTarget === m._id && (
               <div style={{ marginTop: 8 }}>
                 <h4>Select a slot to propose</h4>
+                <div style={{ marginBottom: 8 }}>
+                  <button onClick={() => navigate('/alumni/slots')} style={{ marginRight: 8 }}>Add New Slot</button>
+                </div>
                 {slots.length === 0 && <p>No slots available to propose</p>}
                 <ul>
                   {slots.map(s => (

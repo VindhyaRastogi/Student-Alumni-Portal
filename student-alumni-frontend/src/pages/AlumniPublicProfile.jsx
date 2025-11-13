@@ -97,14 +97,14 @@ const AlumniPublicProfile = () => {
       </p>
 
       {/* ✅ Request Meeting Button */}
-      <div style={{ marginTop: "24px", textAlign: "center" }}>
+      {/* <div style={{ marginTop: "24px", textAlign: "center" }}>
         <button
           onClick={handleRequestMeeting}
           className="request-meeting-btn"
         >
           Request Meeting
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
