@@ -26,12 +26,10 @@ exports.register = async (req, res) => {
     // check allowed
     const allowed = await AllowedEmail.findOne({ email: normalized });
     if (!allowed) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Email not authorized to register. Use your college email or contact admin.",
-        });
+      return res.status(403).json({
+        message:
+          "Email not authorized to register. Use your college email or contact admin.",
+      });
     }
 
     // existing
@@ -71,11 +69,9 @@ exports.login = async (req, res) => {
 
     // check if admin has disabled this user
     if (user.allowed === false) {
-      return res
-        .status(403)
-        .json({
-          message: "You have not been allowed by administrator to login",
-        });
+      return res.status(403).json({
+        message: "You have not been allowed by administrator to login",
+      });
     }
 
     const match = await bcrypt.compare(password, user.password);

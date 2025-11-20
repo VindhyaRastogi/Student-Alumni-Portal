@@ -1,4 +1,3 @@
-// src/pages/AlumniPublicProfile.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom"; // ✅ added useNavigate
 import axios from "axios";
@@ -17,18 +16,31 @@ const AlumniPublicProfile = () => {
     const fetchAlumni = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/alumni/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        // normalize API base so code works when VITE_API_BASE_URL is not set
+        const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+        const apiRoot = apiBase.replace(/\/api\/?$/i, "");
+        const url = apiRoot
+          ? `${apiRoot}/api/alumni/${id}`
+          : `/api/alumni/${id}`;
+        const res = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         let data = res.data;
 
-        // ✅ Fix image path
-        const apiBase = import.meta.env.VITE_API_BASE_URL || "";
-        const apiRoot = apiBase.replace(/\/api\/?$/i, "");
+        // Fix image path using the apiRoot computed above
         if (data.profilePicture && !data.profilePicture.startsWith("http")) {
-          data.profilePicture = `${apiRoot}/uploads/${data.profilePicture}`;
+          // if profilePicture is already a relative '/uploads/..' path, join with apiRoot
+          if (data.profilePicture.startsWith("/")) {
+            data.profilePicture = `${apiRoot}${data.profilePicture}`;
+          } else if (data.profilePicture.includes("/uploads/")) {
+            data.profilePicture = `${apiRoot}/${data.profilePicture}`.replace(
+              /([^:]\/)\//g,
+              "$1"
+            );
+          } else {
+            data.profilePicture = `${apiRoot}/uploads/${data.profilePicture}`;
+          }
         } else if (!data.profilePicture) {
           data.profilePicture = "/default-avatar.svg";
         }
