@@ -32,7 +32,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <h1 className="dashboard-header">👑 Welcome, Admin!</h1>
+      <h1 className="dashboard-header"> Welcome, Admin!</h1>
       <div className="card-grid">
         {adminMenu.map((item, index) => (
           <Link to={item.link} key={index} className="dashboard-card">
