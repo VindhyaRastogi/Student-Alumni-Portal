@@ -4,6 +4,7 @@ const slotSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   start: { type: Date, required: true },
   end: { type: Date, required: true },
+  booked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

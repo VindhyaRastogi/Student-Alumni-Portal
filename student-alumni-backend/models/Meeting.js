@@ -15,6 +15,14 @@ const meetingSchema = new mongoose.Schema({
   proposer: { type: String, enum: ['student','alumni'] },
   rescheduleMessage: String,
   createdAt: { type: Date, default: Date.now }
+  ,
+  // Google Meet / Calendar integration
+  googleMeetLink: { type: String },
+  calendarEventId: { type: String },
+  calendarHtmlLink: { type: String }
+  ,
+  // reference to the Slot that was booked for this meeting (if any)
+  slot: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' }
 });
 
 module.exports = mongoose.model('Meeting', meetingSchema);

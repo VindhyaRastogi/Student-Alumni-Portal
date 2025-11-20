@@ -47,66 +47,71 @@ const StudentMeetings = () => {
       {!loading && meetings.length === 0 && <p>No meetings yet.</p>}
 
       <ul>
-        {meetings.map(m => (
-          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <div style={{ width: 56, height: 56, flex: '0 0 56px' }}>
-              {(() => {
-                const alum = m.alumniId || m.alumniId?._doc || {};
-                const pic = alum.profile?.profilePicture || alum.profilePicture || alum.user?.profilePicture || alum._doc?.profilePicture || alum._doc?.profile?.profilePicture;
-                return pic ? (
-                  <img src={pic.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL}${pic}` : pic} alt="alumni" style={{ width: 56, height: 56, borderRadius: 28, objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: 56, height: 56, borderRadius: 28, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(alum.fullName || 'A').charAt(0)}</div>
-                );
-              })()}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div><strong>With:</strong> {m.alumniId ? (<Link to={`/student/alumni/${m.alumniId._id || m.alumniId}`}>{m.alumniId.fullName || m.alumniId._doc?.fullName}</Link>) : 'Alumni'}</div>
-              <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
-            <div><strong>Status:</strong> {m.status}</div>
-            {m.status === 'accepted' && (
-              <div style={{ background: '#e6ffed', padding: 8, marginTop: 8, borderRadius: 4 }}>
-                <div>Your meeting request has been accepted by the alumni.</div>
-                {m.meetLink && (
-                  <div style={{ marginTop: 8 }}>
-                    <strong>Join meeting: </strong>
-                    <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>
-                      Join Google Meet
-                    </a>
+          {meetings.map((m) => (
+            <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ width: 56, height: 56, flex: '0 0 56px' }}>
+                {(() => {
+                  const alum = m.alumniId || m.alumniId?._doc || {};
+                  const pic = alum.profile?.profilePicture || alum.profilePicture || alum.user?.profilePicture || alum._doc?.profilePicture || alum._doc?.profile?.profilePicture;
+                  return pic ? (
+                    <img src={pic.startsWith('/') ? `${import.meta.env.VITE_API_BASE_URL}${pic}` : pic} alt="alumni" style={{ width: 56, height: 56, borderRadius: 28, objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: 56, height: 56, borderRadius: 28, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(alum.fullName || 'A').charAt(0)}</div>
+                  );
+                })()}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div><strong>With:</strong> {m.alumniId ? (<Link to={`/student/alumni/${m.alumniId?.profile?._id || m.alumniId._id || m.alumniId}`}>{m.alumniId.fullName || m.alumniId._doc?.fullName}</Link>) : 'Alumni'}</div>
+                <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
+                <div><strong>Status:</strong> {m.status}</div>
+
+                {m.status === 'accepted' && (
+                  <div style={{ background: '#e6ffed', padding: 8, marginTop: 8, borderRadius: 4 }}>
+                    <div>Your meeting request has been accepted by the alumni.</div>
+                    {m.googleMeetLink ? (
+                      <div style={{ marginTop: 8 }}>
+                        <strong>Join meeting: </strong>
+                        <a href={m.googleMeetLink} target="_blank" rel="noreferrer" style={{ color: '#0366d6' }}>Join Now</a>
+                      </div>
+                    ) : m.meetLink ? (
+                      <div style={{ marginTop: 8 }}>
+                        <strong>Join meeting: </strong>
+                        <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>Join Google Meet</a>
+                      </div>
+                    ) : (
+                      <div style={{ fontStyle: 'italic', marginTop: 8 }}>Creating Meeting Link...</div>
+                    )}
                   </div>
                 )}
+
+                {m.status === 'reschedule_requested' && (
+                  <div style={{ marginTop: 8 }}>
+                    <div>Proposed by: {m.proposer}</div>
+                    <div>Proposed slot: {m.proposedStart ? `${new Date(m.proposedStart).toLocaleString()} - ${new Date(m.proposedEnd).toLocaleString()}` : 'N/A'}</div>
+                    <div>Message: {m.rescheduleMessage}</div>
+                  </div>
+                )}
+
               </div>
-            )}
 
-            {m.status === 'reschedule_requested' && (
               <div style={{ marginTop: 8 }}>
-                <div>Proposed by: {m.proposer}</div>
-                <div>Proposed slot: {m.proposedStart ? `${new Date(m.proposedStart).toLocaleString()} - ${new Date(m.proposedEnd).toLocaleString()}` : 'N/A'}</div>
-                <div>Message: {m.rescheduleMessage}</div>
-                {/* Student can either accept by cancelling original and creating new meeting, or propose another reschedule */}
+                <button onClick={() => cancel(m._id)}>Cancel</button>
+                <button onClick={() => setProposeTarget(m._id)}>Propose Reschedule</button>
               </div>
-            )}
 
-            </div>
-
-            <div style={{ marginTop: 8 }}>
-              <button onClick={() => cancel(m._id)}>Cancel</button>
-              <button onClick={() => setProposeTarget(m._id)}>Propose Reschedule</button>
-            </div>
-
-            {proposeTarget === m._id && (
-              <div style={{ marginTop: 8 }}>
-                <label>New start: <input type="datetime-local" value={proposedStart} onChange={(e) => setProposedStart(e.target.value)} /></label>
-                <label>New end: <input type="datetime-local" value={proposedEnd} onChange={(e) => setProposedEnd(e.target.value)} /></label>
-                <div>
-                  <button onClick={() => propose(m._id)}>Send Proposal</button>
-                  <button onClick={() => { setProposeTarget(null); setProposedStart(''); setProposedEnd(''); }}>Cancel</button>
+              {proposeTarget === m._id && (
+                <div style={{ marginTop: 8 }}>
+                  <label>New start: <input type="datetime-local" value={proposedStart} onChange={(e) => setProposedStart(e.target.value)} /></label>
+                  <label>New end: <input type="datetime-local" value={proposedEnd} onChange={(e) => setProposedEnd(e.target.value)} /></label>
+                  <div>
+                    <button onClick={() => propose(m._id)}>Send Proposal</button>
+                    <button onClick={() => { setProposeTarget(null); setProposedStart(''); setProposedEnd(''); }}>Cancel</button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-          </li>
-        ))}
+            </li>
+          ))}
       </ul>
     </div>
   );

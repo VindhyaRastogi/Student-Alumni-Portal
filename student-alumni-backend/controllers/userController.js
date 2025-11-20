@@ -124,11 +124,7 @@ exports.getUserById = async (req, res) => {
     const Student = require("../models/Student");
     const studentDoc = await Student.findOne({ userId: user._id }).lean();
     if (studentDoc) {
-      profileData = {
-        name: profileData.name,
-        email: profileData.email,
-        ...studentDoc,
-      };
+      profileData = Object.assign({}, { name: profileData.name, email: profileData.email }, studentDoc);
     }
 
     res.json(profileData);

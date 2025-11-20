@@ -25,14 +25,16 @@ const AlumniSlots = () => {
     }
   };
 
-  const deleteSlot = async (id) => {
+  const deleteSlot = async (slotId) => {
+    if (!slotId) return;
     if (!confirm('Delete this slot?')) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/${slotId}`, { headers: { Authorization: `Bearer ${token}` } });
+      // refresh list
       fetchMySlots();
     } catch (err) {
-      console.error('Error deleting slot', err);
-      alert('Failed to delete slot');
+      console.error('Error deleting slot:', err?.response?.data || err.message || err);
+      alert(err?.response?.data?.message || 'Failed to delete slot');
     }
   };
 
@@ -143,7 +145,7 @@ const AlumniSlots = () => {
                 display = JSON.stringify(s);
               }
               return (
-                <li key={s._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <li key={s._id || `${s.start}-${s.end}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{display}</span>
                   <button onClick={() => deleteSlot(s._id)} style={{ marginLeft: 12 }}>Delete</button>
                 </li>

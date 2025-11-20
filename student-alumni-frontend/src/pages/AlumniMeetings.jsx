@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const AlumniMeetings = () => {
@@ -8,7 +8,9 @@ const AlumniMeetings = () => {
   const [slots, setSlots] = useState([]);
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [rescheduleSlot, setRescheduleSlot] = useState(null);
+  const [creatingLinkFor, setCreatingLinkFor] = useState(null);
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
 
   const fetch = async () => {
     try {
@@ -34,9 +36,15 @@ const AlumniMeetings = () => {
 
   const accept = async (id) => {
     try {
+      setCreatingLinkFor(id);
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setCreatingLinkFor(null);
       fetch();
-    } catch (err) { console.error(err); alert('Accept failed'); }
+    } catch (err) {
+      console.error(err);
+      setCreatingLinkFor(null);
+      alert('Accept failed');
+    }
   }
 
   const cancel = async (id) => {
@@ -63,7 +71,7 @@ const AlumniMeetings = () => {
       <h2>Incoming / My Meetings</h2>
       {meetings.length === 0 && <p>No meetings</p>}
       <ul>
-        {meetings.map(m => (
+        {meetings.map((m) => (
           <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
             <div style={{ width: 56, height: 56, flex: '0 0 56px' }}>
               {(() => {
@@ -81,21 +89,35 @@ const AlumniMeetings = () => {
               <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
               <div><strong>Status:</strong> {m.status}</div>
               <div><strong>Message:</strong> {m.message}</div>
-            {m.status === 'accepted' && m.meetLink && (
-              <div style={{ marginTop: 8, background: '#e6ffed', padding: 8, borderRadius: 4 }}>
-                <strong>Meeting Link: </strong>
-                <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>
-                  Join Google Meet
-                </a>
-              </div>
-            )}
-            {m.status === 'pending' && (
-              <div style={{ marginTop: 8 }}>
-                <button onClick={() => accept(m._id)}>Accept</button>
-                <button onClick={() => cancel(m._id)}>Cancel</button>
-                <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
-              </div>
-            )}
+              {m.status === 'accepted' && (
+                <div style={{ marginTop: 8, background: '#e6ffed', padding: 8, borderRadius: 4 }}>
+                  {m.googleMeetLink ? (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ color: 'green', fontWeight: 'bold' }}>Meeting confirmed ✅</div>
+                      <a href={m.googleMeetLink} target="_blank" rel="noreferrer"><button>Join Now</button></a>
+                    </div>
+                  ) : m.meetLink ? (
+                    <div>
+                      <strong>Meeting Link: </strong>
+                      <a href={m.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#0366d6' }}>Join Google Meet</a>
+                    </div>
+                  ) : creatingLinkFor === m._id ? (
+                    <div>Creating Meeting Link...</div>
+                  ) : (
+                    <div>
+                      <button onClick={() => cancel(m._id)}>Cancel</button>
+                      <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {m.status === 'pending' && (
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={() => accept(m._id)}>Accept</button>
+                  <button onClick={() => cancel(m._id)}>Cancel</button>
+                  <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                </div>
+              )}
 
             {m.status === 'reschedule_requested' && (
               <div style={{ marginTop: 8 }}>
@@ -115,6 +137,9 @@ const AlumniMeetings = () => {
             {rescheduleTarget === m._id && (
               <div style={{ marginTop: 8 }}>
                 <h4>Select a slot to propose</h4>
+                <div style={{ marginBottom: 8 }}>
+                  <button onClick={() => navigate('/alumni/slots')} style={{ marginRight: 8 }}>Add New Slot</button>
+                </div>
                 {slots.length === 0 && <p>No slots available to propose</p>}
                 <ul>
                   {slots.map(s => (
