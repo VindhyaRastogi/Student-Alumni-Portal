@@ -25,6 +25,19 @@ const AlumniSlots = () => {
     }
   };
 
+  const deleteSlot = async (slotId) => {
+    if (!slotId) return;
+    if (!confirm('Delete this slot?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/${slotId}`, { headers: { Authorization: `Bearer ${token}` } });
+      // refresh list
+      fetchMySlots();
+    } catch (err) {
+      console.error('Error deleting slot:', err?.response?.data || err.message || err);
+      alert(err?.response?.data?.message || 'Failed to delete slot');
+    }
+  };
+
   const addTempSlot = () => {
     if (!date || !startTime || !endTime) {
       alert("Please select date, start time and end time");
@@ -105,7 +118,7 @@ const AlumniSlots = () => {
 
       {mySlots.length > 0 ? (
         <ul>
-          {mySlots.map((s, i) => {
+          {mySlots.map((s) => {
             // s is expected to be an object with start and end ISO dates
             let display = s;
             try {
@@ -115,7 +128,12 @@ const AlumniSlots = () => {
             } catch (e) {
               display = JSON.stringify(s);
             }
-            return <li key={i}>{display}</li>;
+            return (
+              <li key={s._id || `${s.start}-${s.end}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>{display}</span>
+                <button onClick={() => deleteSlot(s._id)} style={{ marginLeft: 12 }}>Delete</button>
+              </li>
+            );
           })}
         </ul>
       ) : (

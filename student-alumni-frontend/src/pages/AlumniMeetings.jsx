@@ -8,6 +8,7 @@ const AlumniMeetings = () => {
   const [slots, setSlots] = useState([]);
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [rescheduleSlot, setRescheduleSlot] = useState(null);
+  const [creatingLinkFor, setCreatingLinkFor] = useState(null);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -35,9 +36,15 @@ const AlumniMeetings = () => {
 
   const accept = async (id) => {
     try {
+      setCreatingLinkFor(id);
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setCreatingLinkFor(null);
       fetch();
-    } catch (err) { console.error(err); alert('Accept failed'); }
+    } catch (err) {
+      console.error(err);
+      setCreatingLinkFor(null);
+      alert('Accept failed');
+    }
   }
 
   const cancel = async (id) => {
@@ -87,8 +94,19 @@ const AlumniMeetings = () => {
 
                   {m.status === 'accepted' && (
                     <div style={{ marginTop: 8 }}>
-                      <button onClick={() => cancel(m._id)}>Cancel</button>
-                      <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                      {m.googleMeetLink ? (
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <div style={{ color: 'green', fontWeight: 'bold' }}>Meeting confirmed ✅</div>
+                          <a href={m.googleMeetLink} target="_blank" rel="noreferrer"><button>Join Now</button></a>
+                        </div>
+                      ) : creatingLinkFor === m._id ? (
+                        <div>Creating Meeting Link...</div>
+                      ) : (
+                        <div>
+                          <button onClick={() => cancel(m._id)}>Cancel</button>
+                          <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                        </div>
+                      )}
                     </div>
                   )}
 

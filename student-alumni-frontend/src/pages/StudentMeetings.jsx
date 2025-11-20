@@ -65,7 +65,14 @@ const StudentMeetings = () => {
             <div><strong>Status:</strong> {m.status}</div>
             {m.status === 'accepted' && (
               <div style={{ background: '#e6ffed', padding: 8, marginTop: 8, borderRadius: 4 }}>
-                Your meeting request has been accepted by the alumni.
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div>Your meeting request has been accepted by the alumni.</div>
+                  {m.googleMeetLink ? (
+                    <a href={m.googleMeetLink} target="_blank" rel="noreferrer"><button>Join Now</button></a>
+                  ) : (
+                    <div style={{ fontStyle: 'italic' }}>Creating Meeting Link...</div>
+                  )}
+                </div>
               </div>
             )}
 
