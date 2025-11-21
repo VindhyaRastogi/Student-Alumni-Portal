@@ -24,4 +24,12 @@ router.get(
   userCtrl.adminListUsers
 );
 
+// Admin: update a user (soft-block / role)
+router.patch(
+  "/:id",
+  authMiddleware.auth,
+  requireRole("admin"),
+  userCtrl.adminUpdateUser
+);
+
 module.exports = router;

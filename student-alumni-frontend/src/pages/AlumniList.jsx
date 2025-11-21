@@ -89,7 +89,9 @@ const AlumniList = () => {
     try {
       const token = localStorage.getItem("token");
       const reporterId =
-        currentUser?._id || JSON.parse(localStorage.getItem("user") || "null")?._id || null;
+        currentUser?._id ||
+        JSON.parse(localStorage.getItem("user") || "null")?._id ||
+        null;
       const url = API ? `${API}/reports` : "/api/reports";
       const body = {
         reportedUserId: reportTargetId,
@@ -100,7 +102,10 @@ const AlumniList = () => {
       const res = await fetch(url, {
         method: "POST",
         headers: token
-          ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+          ? {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
           : { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
@@ -288,45 +293,52 @@ const AlumniList = () => {
         })}
       </div>
 
-        {/* Report Modal */}
-        {reportModalOpen && (
-          <div className="report-modal-overlay">
-            <div className="report-modal" role="dialog" aria-modal="true">
-              <h3>Report User</h3>
-              <p>Please choose a reason and describe briefly what happened.</p>
+      {/* Report Modal */}
+      {reportModalOpen && (
+        <div className="report-modal-overlay">
+          <div className="report-modal" role="dialog" aria-modal="true">
+            <h3>Report User</h3>
+            <p>Please choose a reason and describe briefly what happened.</p>
 
-              <label>
-                Reason
-                <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-                  <option value="harassment">Harassment</option>
-                  <option value="spam">Spam</option>
-                  <option value="fake_profile">Fake profile</option>
-                  <option value="inappropriate">Inappropriate behavior</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
+            <label>
+              Reason
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+              >
+                <option value="harassment">Harassment</option>
+                <option value="spam">Spam</option>
+                <option value="fake_profile">Fake profile</option>
+                <option value="inappropriate">Inappropriate behavior</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
 
-              <label>
-                Description
-                <textarea
-                  value={reportDescription}
-                  onChange={(e) => setReportDescription(e.target.value)}
-                  rows={4}
-                  placeholder="Short description (what happened)">
-                </textarea>
-              </label>
+            <label>
+              Description
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                rows={4}
+                placeholder="Short description (what happened)"
+              ></textarea>
+            </label>
 
-              <div style={{ marginTop: 12, textAlign: "right" }}>
-                <button onClick={() => setReportModalOpen(false)} disabled={reportSubmitting} style={{ marginRight: 8 }}>
-                  Cancel
-                </button>
-                <button onClick={submitReport} disabled={reportSubmitting}>
-                  {reportSubmitting ? "Submitting..." : "Submit Report"}
-                </button>
-              </div>
+            <div style={{ marginTop: 12, textAlign: "right" }}>
+              <button
+                onClick={() => setReportModalOpen(false)}
+                disabled={reportSubmitting}
+                style={{ marginRight: 8 }}
+              >
+                Cancel
+              </button>
+              <button onClick={submitReport} disabled={reportSubmitting}>
+                {reportSubmitting ? "Submitting..." : "Submit Report"}
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

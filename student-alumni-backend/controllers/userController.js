@@ -124,7 +124,11 @@ exports.getUserById = async (req, res) => {
     const Student = require("../models/Student");
     const studentDoc = await Student.findOne({ userId: user._id }).lean();
     if (studentDoc) {
-      profileData = Object.assign({}, { name: profileData.name, email: profileData.email }, studentDoc);
+      profileData = Object.assign(
+        {},
+        { name: profileData.name, email: profileData.email },
+        studentDoc
+      );
     }
 
     res.json(profileData);
@@ -157,6 +161,30 @@ exports.uploadProfilePhoto = async (req, res) => {
     res.json(ret);
   } catch (err) {
     console.error("uploadProfilePhoto error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Admin: update another user's basic fields (soft-block / role)
+exports.adminUpdateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { allowed, role } = req.body || {};
+
+    const updates = {};
+    if (typeof allowed !== "undefined") updates.allowed = !!allowed;
+    if (typeof role === "string" && role.trim() !== "") updates.role = role;
+
+    if (Object.keys(updates).length === 0)
+      return res.status(400).json({ message: "No valid fields to update" });
+
+    const user = await User.findByIdAndUpdate(id, updates, {
+      new: true,
+    }).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.error("adminUpdateUser error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

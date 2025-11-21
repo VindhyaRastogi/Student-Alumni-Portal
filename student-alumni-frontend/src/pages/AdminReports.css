@@ -1,0 +1,84 @@
+.admin-reports-container {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 18px;
+}
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.reports-table th,
+.reports-table td {
+  border: 1px solid #eee;
+  padding: 8px 10px;
+  text-align: left;
+}
+.report-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 300;
+}
+.report-modal {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  width: 720px;
+  max-width: 96%;
+}
+.report-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.report-desc {
+  white-space: pre-wrap;
+  background: #fafafa;
+  padding: 10px;
+  border-radius: 6px;
+}
+.report-actions .danger {
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.report-actions button {
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.reports-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.reports-filters label {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+}
+.reports-filters select,
+.reports-filters input {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+.reports-pagination {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.reports-pagination button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

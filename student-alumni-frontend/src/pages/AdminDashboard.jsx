@@ -1,7 +1,29 @@
 import "./Dashboard.css";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const AdminDashboard = () => {
+  const [pendingReports, setPendingReports] = useState(0);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const API = import.meta.env.VITE_API_BASE_URL || "";
+        const url = API ? `${API}/reports/stats` : "/api/reports/stats";
+        const token = localStorage.getItem("token");
+        const res = await fetch(url, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setPendingReports(data.pending || 0);
+      } catch (err) {
+        console.warn("Failed to load report stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const adminMenu = [
     {
       title: "Manage Users",
@@ -37,7 +59,12 @@ const AdminDashboard = () => {
         {adminMenu.map((item, index) => (
           <Link to={item.link} key={index} className="dashboard-card">
             <img src={item.img} alt={item.title} className="dashboard-icon" />
-            <h3>{item.title}</h3>
+            <h3>
+              {item.title}
+              {item.link === "/admin/reports" && pendingReports > 0 && (
+                <span className="reports-badge">{pendingReports} new</span>
+              )}
+            </h3>
           </Link>
         ))}
       </div>

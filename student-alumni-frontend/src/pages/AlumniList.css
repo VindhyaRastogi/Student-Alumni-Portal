@@ -241,7 +241,7 @@
   top: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,15 +253,18 @@
   background: #fff;
   padding: 18px;
   border-radius: 10px;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  color: #222; /* ensure modal text is dark and readable */
 }
 .report-modal h3 {
   margin: 0 0 8px 0;
+  color: #222;
 }
 .report-modal label {
   display: block;
   margin-top: 8px;
   font-size: 0.95rem;
+  color: #333;
 }
 .report-modal select,
 .report-modal textarea {
@@ -271,6 +274,8 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
+  color: #222;
+  background: #fff;
 }
 .report-modal textarea {
   resize: vertical;
