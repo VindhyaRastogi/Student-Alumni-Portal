@@ -12,6 +12,12 @@ const AlumniMeetings = () => {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
+  const participantKey = (meeting) => {
+    const studentId = meeting.studentId?._id || meeting.studentId || '';
+    const alumniId = meeting.alumniId?.profile?._id || meeting.alumniId?._id || meeting.alumniId || '';
+    return `${studentId}::${alumniId}`;
+  }
+
   const fetch = async () => {
     try {
       setLoading(true);
@@ -84,6 +90,14 @@ const AlumniMeetings = () => {
             <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
             <div><strong>Status:</strong> {m.status}</div>
             <div><strong>Message:</strong> {m.message}</div>
+            {((new Date(m.end) <= new Date()) && !meetings.some(other => other._id !== m._id && participantKey(other) === participantKey(m) && new Date(other.start) > new Date() && other.status !== 'cancelled')) ? (
+              <div style={{ marginTop: 8, color: '#b00' }}>
+                <div><strong>Meeting date has been expired</strong></div>
+                <div style={{ marginTop: 8 }}>
+                    <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Schedule New Meeting</button>
+                  </div>
+              </div>
+            ) : null}
                   {m.status === 'pending' && (
                     <div style={{ marginTop: 8 }}>
                       <button onClick={() => accept(m._id)}>Accept</button>
@@ -92,21 +106,20 @@ const AlumniMeetings = () => {
                     </div>
                   )}
 
-                  {m.status === 'accepted' && (
+                  {m.status === 'accepted' && new Date(m.end) > new Date() && (
                     <div style={{ marginTop: 8 }}>
                       {m.googleMeetLink ? (
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <div style={{ color: 'green', fontWeight: 'bold' }}>Meeting confirmed ✅</div>
                           <a href={m.googleMeetLink} target="_blank" rel="noreferrer"><button>Join Now</button></a>
                         </div>
-                      ) : creatingLinkFor === m._id ? (
-                        <div>Creating Meeting Link...</div>
-                      ) : (
-                        <div>
-                          <button onClick={() => cancel(m._id)}>Cancel</button>
-                          <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
-                        </div>
-                      )}
+                          ) : creatingLinkFor === m._id ? (
+                            <div>Creating Meeting Link...</div>
+                          ) : (
+                            <div>
+                              <button onClick={() => cancel(m._id)}>Cancel</button>
+                            </div>
+                          )}
                     </div>
                   )}
 
@@ -117,7 +130,6 @@ const AlumniMeetings = () => {
                 <div>Message: {m.rescheduleMessage}</div>
                 {/* If alumni, accept the proposed new time */}
                 <div>
-                  <button onClick={() => accept(m._id)}>Accept Proposed</button>
                   <button onClick={() => cancel(m._id)}>Reject / Cancel</button>
                 </div>
               </div>

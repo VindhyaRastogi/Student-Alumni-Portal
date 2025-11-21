@@ -103,15 +103,42 @@ exports.acceptMeeting = async (req, res) => {
     const meetingId = req.params.id;
     const meeting = await Meeting.findById(meetingId);
     if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
-    if (String(meeting.alumniId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
+    // Accept rules:
+    // - If meeting is pending: only the alumni may accept (original flow)
+    // - If meeting is a reschedule_requested: the non-proposer participant may accept the proposed time
+    if (meeting.status === 'pending') {
+      if (String(meeting.alumniId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
+      // alumni accepting original request
+      meeting.status = 'accepted';
+      // clear any proposals (should not exist)
+      meeting.proposedStart = undefined;
+      meeting.proposedEnd = undefined;
+      meeting.proposer = undefined;
+      meeting.rescheduleMessage = undefined;
+      await meeting.save();
+    } else if (meeting.status === 'reschedule_requested') {
+      // only allow the non-proposer to accept
+      const proposer = meeting.proposer; // 'alumni' or 'student'
+      const proposerIsAlumni = proposer === 'alumni';
+      const proposerUserId = proposerIsAlumni ? String(meeting.alumniId) : String(meeting.studentId);
+      const otherUserId = proposerIsAlumni ? String(meeting.studentId) : String(meeting.alumniId);
+      if (String(userId) !== otherUserId) return res.status(403).json({ message: 'Not authorized to accept this proposal' });
 
-  meeting.status = 'accepted';
-    // clear any proposals
-    meeting.proposedStart = undefined;
-    meeting.proposedEnd = undefined;
-    meeting.proposer = undefined;
-    meeting.rescheduleMessage = undefined;
-    await meeting.save();
+      // apply proposed times as the new meeting time
+      if (meeting.proposedStart && meeting.proposedEnd) {
+        meeting.start = meeting.proposedStart;
+        meeting.end = meeting.proposedEnd;
+      }
+      meeting.status = 'accepted';
+      // clear proposals
+      meeting.proposedStart = undefined;
+      meeting.proposedEnd = undefined;
+      meeting.proposer = undefined;
+      meeting.rescheduleMessage = undefined;
+      await meeting.save();
+    } else {
+      return res.status(400).json({ message: 'Meeting cannot be accepted in its current state' });
+    }
 
     // If Google integration is configured and no meet link exists, try to create one now.
     try {

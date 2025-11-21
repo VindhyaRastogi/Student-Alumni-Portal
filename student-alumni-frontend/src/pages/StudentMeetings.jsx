@@ -10,13 +10,23 @@ const StudentMeetings = () => {
   const [proposedEnd, setProposedEnd] = useState("");
   const token = localStorage.getItem('token');
 
+  const participantKey = (meeting) => {
+    const studentId = meeting.studentId?._id || meeting.studentId || '';
+    const alumniId = meeting.alumniId?.profile?._id || meeting.alumniId?._id || meeting.alumniId || '';
+    return `${studentId}::${alumniId}`;
+  }
+
   const fetch = async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/meetings/my`, { headers: { Authorization: `Bearer ${token}` } });
       setMeetings(res.data.meetings || []);
     } catch (err) {
-      console.error('Error fetching meetings', err);
+      console.error('Error fetching meetings', err?.response?.status, err?.response?.data || err?.message || err);
+      // Helpful hint for 403: token may be missing/expired or user lacks permissions.
+      if (err?.response?.status === 403) {
+        console.warn('Got 403 from /meetings/my — check Authorization header, token validity, and backend role checks.');
+      }
     } finally { setLoading(false); }
   };
 
@@ -27,6 +37,13 @@ const StudentMeetings = () => {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/cancel`, {}, { headers: { Authorization: `Bearer ${token}` } });
       fetch();
     } catch (err) { console.error(err); alert('Cancel failed'); }
+  }
+
+  const accept = async (id) => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetch();
+    } catch (err) { console.error(err); alert('Accept failed'); }
   }
 
   const propose = async (id) => {
@@ -62,8 +79,16 @@ const StudentMeetings = () => {
               )}
             </div>
             <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
+            {/* expired check: only show if no other future meeting exists between same participants */}
+            {new Date(m.end) <= new Date() && (
+              !meetings.some(other => other._id !== m._id && participantKey(other) === participantKey(m) && new Date(other.start) > new Date() && other.status !== 'cancelled') ? (
+              <div style={{ marginTop: 8, color: '#b00' }}>
+                <div><strong>Meeting date has been expired</strong></div>
+                {/* Student will propose reschedule; remove the Schedule New Meeting button here */}
+              </div>
+            ) : null)}
             <div><strong>Status:</strong> {m.status}</div>
-            {m.status === 'accepted' && (
+            {m.status === 'accepted' && new Date(m.end) > new Date() && (
               <div style={{ background: '#e6ffed', padding: 8, marginTop: 8, borderRadius: 4 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div>Your meeting request has been accepted by the alumni.</div>
@@ -81,14 +106,28 @@ const StudentMeetings = () => {
                 <div>Proposed by: {m.proposer}</div>
                 <div>Proposed slot: {m.proposedStart ? `${new Date(m.proposedStart).toLocaleString()} - ${new Date(m.proposedEnd).toLocaleString()}` : 'N/A'}</div>
                 <div>Message: {m.rescheduleMessage}</div>
-                {/* Student can either accept by cancelling original and creating new meeting, or propose another reschedule */}
+                {/* Student can accept the proposed new time, reject/cancel, or propose another reschedule */}
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={() => accept(m._id)}>Accept Proposed</button>
+                  <button onClick={() => cancel(m._id)}>Reject / Cancel</button>
+                </div>
               </div>
             )}
 
-            <div style={{ marginTop: 8 }}>
-              <button onClick={() => cancel(m._id)}>Cancel</button>
-              <button onClick={() => setProposeTarget(m._id)}>Propose Reschedule</button>
-            </div>
+            {/* Controls by status */}
+            {m.status === 'pending' && (
+              <div style={{ marginTop: 8 }}>
+                <button onClick={() => cancel(m._id)}>Cancel</button>
+                <button onClick={() => setProposeTarget(m._id)}>Propose Reschedule</button>
+              </div>
+            )}
+
+            {m.status === 'accepted' && new Date(m.end) > new Date() && (
+              <div style={{ marginTop: 8 }}>
+                {/* accepted meetings: only allow cancel (Join handled above) */}
+                <button onClick={() => cancel(m._id)}>Cancel</button>
+              </div>
+            )}
 
             {proposeTarget === m._id && (
               <div style={{ marginTop: 8 }}>
