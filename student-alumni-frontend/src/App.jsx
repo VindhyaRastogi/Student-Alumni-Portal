@@ -17,8 +17,11 @@ import AlumniSlots from "./pages/AlumniSlots"; // availability page
 import StudentMeetingRequest from "./pages/StudentMeetingRequest";
 import AlumniMeetings from "./pages/AlumniMeetings";
 import StudentMeetings from "./pages/StudentMeetings";
+import ChatWindow from "./pages/ChatWindow";
 import StudentList from "./pages/StudentList";
-import StudentPublicProfile from "./pages/StudentPublicProfile";
+import StudentPublicProfile from "./pages/StudentPublicProfileAdmin";
+import AdminProfile from "./pages/AdminProfile";
+import AlumniMeetingRequest from "./pages/AlumniMeetingRequest";
 const App = () => {
   const location = useLocation();
 
@@ -33,9 +36,9 @@ const App = () => {
       <Routes>
         {/* 🏠 Home page with integrated Login/Register */}
         <Route path="/" element={<Home />} />
-  {/* support direct links to register/login that reuse Home */}
-  <Route path="/register" element={<Home />} />
-  <Route path="/login" element={<Home />} />
+        {/* support direct links to register/login that reuse Home */}
+        <Route path="/register" element={<Home />} />
+        <Route path="/login" element={<Home />} />
 
         {/* 🔑 Forgot Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -129,15 +132,15 @@ const App = () => {
           }
         />
 
-          {/* Student meeting request (pick a slot and request) */}
-          <Route
-            path="/student/alumni/:alumniId/request"
-            element={
-              <ProtectedRoute allowedRoles={["student"]}>
-                <StudentMeetingRequest />
-              </ProtectedRoute>
-            }
-          />
+        {/* Student meeting request (pick a slot and request) */}
+        <Route
+          path="/student/alumni/:alumniId/request"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentMeetingRequest />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Keep existing alumni/:id for other roles if needed (alumni/admin) */}
         <Route
@@ -153,8 +156,18 @@ const App = () => {
         <Route
           path="/student/:id"
           element={
-            <ProtectedRoute allowedRoles={["alumni"]}>
+            <ProtectedRoute allowedRoles={["alumni", "admin"]}>
               <StudentPublicProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Alumni-initiated meeting request (select one of alumni's slots and request with a student) */}
+        <Route
+          path="/alumni/student/:studentId/request"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniMeetingRequest />
             </ProtectedRoute>
           }
         />
@@ -209,8 +222,27 @@ const App = () => {
           }
         />
 
+        {/* Admin profile (edit) */}
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+
         {/* 🚧 Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Chat route (one-to-one) */}
+        <Route
+          path="/chats/:id"
+          element={
+            <ProtectedRoute allowedRoles={["student", "alumni"]}>
+              <ChatWindow />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );

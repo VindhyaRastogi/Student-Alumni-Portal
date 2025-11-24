@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import "./AlumniProfile.css";
-
 
 const AlumniProfile = () => {
   const { user } = useAuth();
@@ -200,7 +199,6 @@ const AlumniProfile = () => {
   };
 
   return (
-
     <div className="profile-container">
       <h2>Alumni Profile</h2>
       <form onSubmit={handleSubmit} className="profile-form">
@@ -426,7 +424,7 @@ const AlumniProfile = () => {
               src={previewImage}
               alt="Profile"
               onError={(e) => {
-                e.target.src = "/default-avatar.png"; // fallback if broken
+                e.target.src = "/default-avatar.svg"; // fallback if broken
               }}
             />
           </div>

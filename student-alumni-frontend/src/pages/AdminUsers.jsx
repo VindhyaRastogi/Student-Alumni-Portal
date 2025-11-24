@@ -37,6 +37,57 @@ const AdminUsers = () => {
     fetchUsers();
   }, []);
 
+  // remove/disable a user so they cannot log in anymore
+  const removeUser = async (id) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to remove this user? They will be prevented from logging in."
+      )
+    )
+      return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/users/${id}`,
+        {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to remove user");
+      // mark as disabled in UI so admin can re-enable later
+      setUsers((prev) =>
+        prev.map((u) => (u._id === id ? { ...u, allowed: false } : u))
+      );
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to remove user");
+    }
+  };
+
+  const enableUser = async (id) => {
+    if (!window.confirm("Enable this user to allow login again?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/users/${id}/enable`,
+        {
+          method: "PATCH",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to enable user");
+      setUsers((prev) =>
+        prev.map((u) => (u._id === id ? { ...u, allowed: true } : u))
+      );
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to enable user");
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       const nameMatch = filters.name
@@ -57,12 +108,8 @@ const AdminUsers = () => {
     });
   }, [users, filters]);
 
-  if (loading) return <div className="loader">Loading users...</div>;
-  if (error) return <div className="error">{error}</div>;
-
   const total = users.length;
   const visible = filteredUsers.length;
-
   return (
     <div className="users-container">
       <div className="users-header-row">
@@ -139,18 +186,55 @@ const AdminUsers = () => {
             const pic =
               resolvePic(user.profile && user.profile.profilePicture) ||
               resolvePic(user.profilePicture) ||
-              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+              "/default-avatar.svg";
+
+            // Prefer the user's updated picture and add a small cache-buster based on updatedAt
+            const getAvatar = (u) => {
+              const cand =
+                (u.profile && u.profile.profilePicture) ||
+                u.profilePicture ||
+                null;
+              const resolved =
+                resolvePic(cand) ||
+                (u.profile &&
+                  u.profile.profilePicture &&
+                  String(u.profile.profilePicture)) ||
+                null;
+              if (!resolved) return "/default-avatar.svg";
+              // use updatedAt if available to bust browser cache when profile changes
+              try {
+                // prefer profile-level updatedAt (from Alumni merge) then user.updatedAt
+                const tVal = (u.profile && u.profile._updatedAt) || u.updatedAt;
+                const t = tVal ? new Date(tVal).getTime() : null;
+                if (t) {
+                  return `${resolved}${
+                    resolved.includes("?") ? "&" : "?"
+                  }v=${t}`;
+                }
+              } catch (err) {
+                // ignore and return resolved
+              }
+              return resolved;
+            };
+
+            const avatarSrc = getAvatar(user);
 
             // prepare image candidate urls to try when loading fails
-            const origVal = (user.profile && user.profile.profilePicture) || user.profilePicture || null;
+            const origVal =
+              (user.profile && user.profile.profilePicture) ||
+              user.profilePicture ||
+              null;
             const makeCandidates = (val) => {
               if (!val) return [];
               const list = [];
               if (val.startsWith("http")) list.push(val);
               if (val.startsWith("/")) list.push(`${apiRoot}${val}`);
-              if (val.includes("/uploads/")) list.push(`${apiRoot}/${val}`.replace(/([^:]\/)\//g, "$1"));
+              if (val.includes("/uploads/"))
+                list.push(`${apiRoot}/${val}`.replace(/([^:]\/)\//g, "$1"));
               // strip leading slashes or uploads/ prefix
-              const filename = val.replace(/^\/+/, "").replace(/^uploads\//, "");
+              const filename = val
+                .replace(/^\/+/, "")
+                .replace(/^uploads\//, "");
               list.push(`${apiRoot}/uploads/${filename}`);
               // raw val as last attempt
               list.push(val);
@@ -163,25 +247,27 @@ const AdminUsers = () => {
               <tr key={user._id}>
                 <td>
                   <img
-                    src={pic}
+                    src={avatarSrc}
                     alt="Profile"
                     className="profile-img"
                     data-candidates={JSON.stringify(candidates)}
                     data-try={0}
                     onError={(e) => {
                       try {
-                        const c = JSON.parse(e.target.dataset.candidates || '[]');
-                        let idx = parseInt(e.target.dataset.try || '0', 10);
+                        const c = JSON.parse(
+                          e.target.dataset.candidates || "[]"
+                        );
+                        let idx = parseInt(e.target.dataset.try || "0", 10);
                         if (idx < c.length) {
                           e.target.dataset.try = idx + 1;
                           e.target.src = c[idx];
                         } else {
                           e.target.onerror = null;
-                          e.target.src = '/default-avatar.png';
+                          e.target.src = "/default-avatar.svg";
                         }
                       } catch (err) {
                         e.target.onerror = null;
-                        e.target.src = '/default-avatar.png';
+                        e.target.src = "/default-avatar.svg";
                       }
                     }}
                   />
@@ -213,14 +299,27 @@ const AdminUsers = () => {
                     </>
                   ) : user.role === "alumni" ? (
                     (() => {
-                      const jobTitle = (user.profile && user.profile.jobTitle) || user.jobTitle || "-";
-                      const company = (user.profile && user.profile.company) || user.company || "-";
-                      const locObj = (user.profile && user.profile.location) || user.location || null;
+                      const jobTitle =
+                        (user.profile && user.profile.jobTitle) ||
+                        user.jobTitle ||
+                        "-";
+                      const company =
+                        (user.profile && user.profile.company) ||
+                        user.company ||
+                        "-";
+                      const locObj =
+                        (user.profile && user.profile.location) ||
+                        user.location ||
+                        null;
                       let locationStr = "-";
                       if (locObj) {
                         if (typeof locObj === "string") locationStr = locObj;
                         else {
-                          const parts = [locObj.city, locObj.state, locObj.country].filter(Boolean);
+                          const parts = [
+                            locObj.city,
+                            locObj.state,
+                            locObj.country,
+                          ].filter(Boolean);
                           locationStr = parts.length ? parts.join(", ") : "-";
                         }
                       }
@@ -245,14 +344,38 @@ const AdminUsers = () => {
                 </td>
 
                 <td>
-                  {user.role === "alumni" ? (
-                    <Link to={`/alumni/${user._id}`} className="view-btn">
-                      View
-                    </Link>
-                  ) : user.role === "student" ? (
-                    <Link to={`/student/${user._id}`} className="view-btn">
-                      View
-                    </Link>
+                  {user.role === "alumni" || user.role === "student" ? (
+                    <>
+                      <Link
+                        to={
+                          user.role === "alumni"
+                            ? `/alumni/${user._id}`
+                            : `/student/${user._id}`
+                        }
+                        state={{ fromAdmin: true }}
+                        className="view-btn"
+                      >
+                        View
+                      </Link>
+
+                      {user.allowed === false ? (
+                        <button
+                          className="enable-btn"
+                          onClick={() => enableUser(user._id)}
+                          title="Enable user login"
+                        >
+                          Enable
+                        </button>
+                      ) : (
+                        <button
+                          className="remove-btn"
+                          onClick={() => removeUser(user._id)}
+                          title="Remove user (prevent login)"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </>
                   ) : user.role === "admin" ? (
                     // admins: link to admin user detail/manage page
                     <Link to={`/admin/users/${user._id}`} className="view-btn">

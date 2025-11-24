@@ -2,29 +2,53 @@ const Meeting = require('../models/Meeting');
 const Slot = require('../models/Slot');
 const Alumni = require('../models/Alumni');
 const Student = require('../models/Student');
+const googleMeetService = require('../services/googleMeetService');
 const { createMeetEvent } = require('../services/googleCalendar');
-const mongoose = require('mongoose');
 
-// student requests a meeting with alumni for a specific slot
+// request a meeting: supports student->alumni (original) and alumni->student (new)
 exports.requestMeeting = async (req, res) => {
   try {
-    console.debug('requestMeeting called by user', req.user && req.user._id, 'body=', req.body);
-    const studentId = req.user._id;
-    const { alumniUserId: alumniUserIdParam, start, end, message } = req.body;
-    if (!alumniUserIdParam || !start || !end) return res.status(400).json({ message: 'alumniUserId, start and end are required' });
+    if (!req.user || !req.user._id) return res.status(401).json({ message: 'Authentication required' });
+
+    const callerId = req.user._id;
+    const callerRole = req.user.role || (req.user.isAlumni ? 'alumni' : (req.user.isStudent ? 'student' : 'user'));
+
+    // Accept either alumniUserId (for student-initiated) or studentUserId (for alumni-initiated).
+    const { alumniUserId: alumniUserIdParam, studentUserId: studentUserIdParam, start, end, message } = req.body || {};
+
+    if (!start || !end) return res.status(400).json({ message: 'start and end are required' });
 
     const startDt = new Date(start);
     const endDt = new Date(end);
     if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) return res.status(400).json({ message: 'Invalid dates' });
     if (endDt <= startDt) return res.status(400).json({ message: 'end must be after start' });
 
-    // Resolve alumni id shape: frontend may send a User._id or an Alumni._id
-    let alumniUserId = alumniUserIdParam;
-    try {
-      // try to find slot with the provided id as userId
-      let slotExists = await Slot.findOne({ userId: alumniUserIdParam, start: startDt, end: endDt });
+    let studentUserId;
+    let alumniUserId;
+    let slotExists = null;
+
+    if (callerRole === 'alumni') {
+      // alumni initiating a request to a student
+      alumniUserId = callerId;
+      if (!studentUserIdParam) return res.status(400).json({ message: 'studentUserId is required when alumni initiates a request' });
+      studentUserId = studentUserIdParam;
+
+      // find slot belonging to this alumni
+      slotExists = await Slot.findOne({ userId: alumniUserId, start: startDt, end: endDt });
       if (!slotExists) {
-        // maybe the provided id is an Alumni document id; map it to the underlying userId
+        // allow slot lookup by alumni doc id or fallback heuristics
+        const alt = await Slot.findOne({ $or: [{ user: alumniUserId }, { user: studentUserId }], start: startDt, end: endDt });
+        if (alt && String(alt.userId) === String(alumniUserId)) slotExists = alt;
+      }
+    } else {
+      // student initiating (original flow)
+      studentUserId = callerId;
+      if (!alumniUserIdParam) return res.status(400).json({ message: 'alumniUserId is required' });
+      alumniUserId = alumniUserIdParam;
+
+      // try to find slot by userId, then map alumni doc to userId if needed
+      slotExists = await Slot.findOne({ userId: alumniUserIdParam, start: startDt, end: endDt });
+      if (!slotExists) {
         const alumniDoc = await Alumni.findById(alumniUserIdParam);
         if (alumniDoc && alumniDoc.userId) {
           alumniUserId = alumniDoc.userId;
@@ -32,41 +56,44 @@ exports.requestMeeting = async (req, res) => {
         }
       }
 
+      // fallback: flexible time matching within small tolerance
       if (!slotExists) {
-        return res.status(400).json({ message: 'Selected slot is not available' });
+        const toleranceMs = 5 * 60 * 1000;
+        const startMs = startDt.getTime();
+        const endMs = endDt.getTime();
+        slotExists = await Slot.findOne({
+          $or: [{ userId: alumniUserId }, { user: alumniUserId }, { alumni: alumniUserId }],
+          start: { $gte: new Date(startMs - toleranceMs), $lte: new Date(startMs + toleranceMs) },
+          end: { $gte: new Date(endMs - toleranceMs), $lte: new Date(endMs + toleranceMs) }
+        });
       }
-
-      const meeting = await Meeting.create({ studentId, alumniId: alumniUserId, start: startDt, end: endDt, message, slot: slotExists._id });
-
-      // try to mark slot as booked if schema supports it
-      try {
-        if (slotExists && typeof slotExists.booked !== 'undefined') {
-          slotExists.booked = true;
-          await slotExists.save();
-        }
-      } catch (markErr) {
-        console.warn('Failed to mark slot as booked:', markErr && markErr.message ? markErr.message : markErr);
-      }
-
-      // populate and attach deterministic doc ids for frontend routing
-      const populated = await Meeting.findById(meeting._id)
-        .populate('studentId', 'fullName email')
-        .populate('alumniId', 'fullName email');
-      const meetingObj = populated.toObject();
-      const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
-      const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
-      if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
-      if (studentDoc) meetingObj.studentDocId = studentDoc._id;
-
-      return res.json({ meeting: meetingObj });
-    } catch (innerErr) {
-      console.error('Error during slot lookup/create:', innerErr && innerErr.stack ? innerErr.stack : innerErr);
-      // return the error message to the client for easier debugging in dev
-      return res.status(500).json({ message: innerErr && innerErr.message ? innerErr.message : 'Server error creating meeting', stack: innerErr && innerErr.stack });
     }
+
+    if (!slotExists) return res.status(400).json({ message: 'Selected slot is not available' });
+
+    // create meeting document with correct student/alumni ids
+    const meeting = await Meeting.create({ studentId: studentUserId, alumniId: alumniUserId, start: startDt, end: endDt, message, slot: slotExists._id });
+
+    try {
+      if (slotExists && typeof slotExists.booked !== 'undefined') {
+        slotExists.booked = true;
+        await slotExists.save();
+      }
+    } catch (markErr) {
+      console.warn('Failed to mark slot as booked:', markErr && markErr.message ? markErr.message : markErr);
+    }
+
+    const populated = await Meeting.findById(meeting._id).populate('studentId', 'fullName email').populate('alumniId', 'fullName email');
+    const meetingObj = populated.toObject();
+    const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
+    const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
+    if (alumniDoc) meetingObj.alumniDocId = alumniDoc._id;
+    if (studentDoc) meetingObj.studentDocId = studentDoc._id;
+
+    return res.json({ meeting: meetingObj });
   } catch (err) {
     console.error('Error requesting meeting:', err && err.stack ? err.stack : err);
-    res.status(500).json({ message: err && err.message ? err.message : 'Server error creating meeting', stack: err && err.stack });
+    return res.status(500).json({ message: 'Server error creating meeting', error: err && err.message });
   }
 };
 
@@ -79,7 +106,6 @@ exports.getMyMeetings = async (req, res) => {
       .populate('studentId', 'fullName email')
       .populate('alumniId', 'fullName email');
 
-    // attach deterministic doc ids to each meeting
     const meetingsWithDocs = await Promise.all(meetings.map(async (m) => {
       const mo = m.toObject();
       const alumniDoc = await Alumni.findOne({ userId: mo.alumniId && mo.alumniId._id }).select('_id');
@@ -140,10 +166,19 @@ exports.acceptMeeting = async (req, res) => {
       return res.status(400).json({ message: 'Meeting cannot be accepted in its current state' });
     }
 
-    // If Google integration is configured and no meet link exists, try to create one now.
+    // try to create Google Meet via local service
+    try {
+      if (googleMeetService && typeof googleMeetService.createMeeting === 'function') {
+        const meetLink = await googleMeetService.createMeeting(`Meeting with ${meeting.studentId || 'Student'}`, meeting.start, meeting.end);
+        if (meetLink) meeting.meetLink = meetLink;
+      }
+    } catch (gErr) {
+      console.warn('googleMeetService.createMeeting failed:', gErr && gErr.message ? gErr.message : gErr);
+    }
+
+    // fallback: try calendar event creation if configured
     try {
       if (!meeting.googleMeetLink && process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-        // populate user emails for attendees
         const studentUser = await Student.findOne({ userId: meeting.studentId }).select('email');
         const alumniUser = await Alumni.findOne({ userId: meeting.alumniId }).select('email');
         const attendees = [];
@@ -151,27 +186,20 @@ exports.acceptMeeting = async (req, res) => {
         if (alumniUser && alumniUser.email) attendees.push(alumniUser.email);
 
         const reqId = `meeting-${meeting._id}`;
-        const start = meeting.start;
-        const end = meeting.end;
-        const summary = `Meeting: ${studentUser && studentUser.email ? studentUser.email : 'Student'} & ${alumniUser && alumniUser.email ? alumniUser.email : 'Alumni'}`;
-        const desc = meeting.message || '';
-
-        const ev = await createMeetEvent({ summary, start, end, attendees, description: desc, requestId: reqId });
+        const ev = await createMeetEvent({ summary: `Meeting: ${studentUser && studentUser.email ? studentUser.email : 'Student'}`, start: meeting.start, end: meeting.end, attendees, description: meeting.message || '', requestId: reqId });
         if (ev && ev.meetLink) {
           meeting.googleMeetLink = ev.meetLink;
           meeting.calendarEventId = ev.eventId;
           meeting.calendarHtmlLink = ev.htmlLink;
-          await meeting.save();
         }
       }
     } catch (gErr) {
       console.error('Error creating Google Meet event:', gErr && gErr.message ? gErr.message : gErr);
-      // non-fatal: proceed without meet link, client will see meeting accepted but link missing
     }
-    // populate and attach doc ids
-    const populated = await Meeting.findById(meeting._id)
-      .populate('studentId', 'fullName email')
-      .populate('alumniId', 'fullName email');
+
+    await meeting.save();
+
+    const populated = await Meeting.findById(meeting._id).populate('studentId', 'fullName email').populate('alumniId', 'fullName email');
     const meetingObj = populated.toObject();
     const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
     const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
@@ -194,13 +222,23 @@ exports.cancelMeeting = async (req, res) => {
     if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
     if (String(meeting.alumniId) !== String(userId) && String(meeting.studentId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
 
+    // unmark slot as booked if this meeting reserved a slot
+    try {
+      if (meeting.slot) {
+        const slotDoc = await Slot.findById(meeting.slot);
+        if (slotDoc && slotDoc.booked) {
+          slotDoc.booked = false;
+          await slotDoc.save();
+        }
+      }
+    } catch (slotErr) {
+      console.warn('Failed to unmark slot on cancel:', slotErr && slotErr.message ? slotErr.message : slotErr);
+    }
+
     meeting.status = 'cancelled';
     await meeting.save();
 
-    // populate and attach doc ids
-    const populated = await Meeting.findById(meeting._id)
-      .populate('studentId', 'fullName email')
-      .populate('alumniId', 'fullName email');
+    const populated = await Meeting.findById(meeting._id).populate('studentId', 'fullName email').populate('alumniId', 'fullName email');
     const meetingObj = populated.toObject();
     const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
     const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');
@@ -229,10 +267,8 @@ exports.proposeReschedule = async (req, res) => {
 
     const meeting = await Meeting.findById(meetingId);
     if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
-    // only participants can propose
     if (String(meeting.alumniId) !== String(userId) && String(meeting.studentId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
 
-    // optional: verify that if alumni proposes, the slot exists in their availability
     if (String(meeting.alumniId) === String(userId)) {
       const slotExists = await Slot.findOne({ userId, start: startDt, end: endDt });
       if (!slotExists) return res.status(400).json({ message: 'Proposed slot is not in your availability' });
@@ -245,10 +281,7 @@ exports.proposeReschedule = async (req, res) => {
     meeting.status = 'reschedule_requested';
     await meeting.save();
 
-    // populate and attach doc ids
-    const populated = await Meeting.findById(meeting._id)
-      .populate('studentId', 'fullName email')
-      .populate('alumniId', 'fullName email');
+    const populated = await Meeting.findById(meeting._id).populate('studentId', 'fullName email').populate('alumniId', 'fullName email');
     const meetingObj = populated.toObject();
     const alumniDoc = await Alumni.findOne({ userId: meetingObj.alumniId && meetingObj.alumniId._id }).select('_id');
     const studentDoc = await Student.findOne({ userId: meetingObj.studentId && meetingObj.studentId._id }).select('_id');

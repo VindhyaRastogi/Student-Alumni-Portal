@@ -7,7 +7,7 @@
   border: 2px solid #034078;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Heading */
@@ -38,7 +38,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #034078;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 /* Profile text fields */
@@ -60,7 +60,7 @@
   border: 1px solid #cce0f2;
   border-radius: 12px;
   background-color: #f8fbff;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* LinkedIn link */
@@ -129,5 +129,69 @@
   background-color: #2563eb;
 }
 
+/* Profile header + menu (three-dots) */
+.profile-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.profile-menu {
+  position: absolute;
+  right: 18px;
+  top: 8px;
+}
 
+.dots-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 6px;
+  line-height: 1;
+  color: #034078;
+  border-radius: 6px;
+}
+
+.dots-btn:hover {
+  background: rgba(3, 64, 120, 0.06);
+}
+
+.dots-menu {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  z-index: 60;
+  min-width: 150px;
+  padding: 6px 6px;
+}
+
+.dots-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #001f54;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.dots-menu-item:hover {
+  background: rgba(3, 64, 120, 0.04);
+}
+
+@media (max-width: 600px) {
+  .profile-header {
+    padding-right: 8px;
+  }
+  .dots-menu {
+    right: -6px;
+  }
+}

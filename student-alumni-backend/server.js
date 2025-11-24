@@ -10,7 +10,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const alumniRoutes = require("./routes/alumniRoutes");
 const slotsRoutes = require("./routes/slotsRoutes");
 const meetingsRoutes = require("./routes/meetingsRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const reportsRoutes = require("./routes/reportsRoutes");
 
 const app = express();
 
@@ -33,10 +35,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/alumni", alumniRoutes);
+app.use("/api/reports", reportsRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/slots", slotsRoutes);
 app.use("/api/meetings", meetingsRoutes);
+app.use("/api/chats", chatRoutes);
 
 // ✅ Default route (optional)
 app.get("/", (req, res) => {
