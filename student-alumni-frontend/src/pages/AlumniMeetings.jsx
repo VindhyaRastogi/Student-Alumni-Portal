@@ -9,7 +9,7 @@ const AlumniMeetings = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [rescheduleSlot, setRescheduleSlot] = useState(null);
   const [creatingLinkFor, setCreatingLinkFor] = useState(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const participantKey = (meeting) => {
@@ -21,54 +21,83 @@ const AlumniMeetings = () => {
   const fetch = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/meetings/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/my`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setMeetings(res.data.meetings || []);
     } catch (err) {
-      console.error('Error fetching meetings', err);
-    } finally { setLoading(false); }
+      console.error("Error fetching meetings", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchMySlots = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/slots/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/slots/my`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSlots(res.data.slots || []);
     } catch (err) {
-      console.error('Error fetching my slots', err);
+      console.error("Error fetching my slots", err);
       setSlots([]);
     }
-  }
+  };
 
-  useEffect(() => { fetch(); fetchMySlots(); }, []);
+  useEffect(() => {
+    fetch();
+    fetchMySlots();
+  }, []);
 
   const accept = async (id) => {
     try {
       setCreatingLinkFor(id);
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setCreatingLinkFor(null);
       fetch();
     } catch (err) {
       console.error(err);
       setCreatingLinkFor(null);
-      alert('Accept failed');
+      alert("Accept failed");
     }
-  }
+  };
 
   const cancel = async (id) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/cancel`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/cancel`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       fetch();
-    } catch (err) { console.error(err); alert('Cancel failed'); }
-  }
+    } catch (err) {
+      console.error(err);
+      alert("Cancel failed");
+    }
+  };
 
   const propose = async (id) => {
-    if (!rescheduleSlot) return alert('Select a slot to propose');
+    if (!rescheduleSlot) return alert("Select a slot to propose");
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/reschedule`, { start: rescheduleSlot.start, end: rescheduleSlot.end, message: '' }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/reschedule`,
+        { start: rescheduleSlot.start, end: rescheduleSlot.end, message: "" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setRescheduleTarget(null);
       setRescheduleSlot(null);
       fetch();
-    } catch (err) { console.error(err); alert('Reschedule failed'); }
-  }
+    } catch (err) {
+      console.error(err);
+      alert("Reschedule failed");
+    }
+  };
 
   if (loading) return <p>Loading...</p>;
 
@@ -102,7 +131,14 @@ const AlumniMeetings = () => {
                     <div style={{ marginTop: 8 }}>
                       <button onClick={() => accept(m._id)}>Accept</button>
                       <button onClick={() => cancel(m._id)}>Cancel</button>
-                      <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Propose Reschedule</button>
+                      <button
+                        onClick={async () => {
+                          setRescheduleTarget(m._id);
+                          await fetchMySlots();
+                        }}
+                      >
+                        Propose Reschedule
+                      </button>
                     </div>
                   )}
 
@@ -139,29 +175,46 @@ const AlumniMeetings = () => {
               <div style={{ marginTop: 8 }}>
                 <h4>Select a slot to propose</h4>
                 <div style={{ marginBottom: 8 }}>
-                  <button onClick={() => navigate('/alumni/slots')} style={{ marginRight: 8 }}>Add New Slot</button>
+                  <button
+                    onClick={() => navigate("/alumni/slots")}
+                    style={{ marginRight: 8 }}
+                  >
+                    Add New Slot
+                  </button>
                 </div>
                 {slots.length === 0 && <p>No slots available to propose</p>}
                 <ul>
-                  {slots.map(s => (
+                  {slots.map((s) => (
                     <li key={s._id}>
                       <label>
-                        <input type="radio" name="slot" onChange={() => setRescheduleSlot(s)} />
-                        {`${new Date(s.start).toLocaleString()} - ${new Date(s.end).toLocaleString()}`}
+                        <input
+                          type="radio"
+                          name="slot"
+                          onChange={() => setRescheduleSlot(s)}
+                        />
+                        {`${new Date(s.start).toLocaleString()} - ${new Date(
+                          s.end
+                        ).toLocaleString()}`}
                       </label>
                     </li>
                   ))}
                 </ul>
                 <button onClick={() => propose(m._id)}>Send Proposal</button>
-                <button onClick={() => { setRescheduleTarget(null); setRescheduleSlot(null); }}>Cancel</button>
+                <button
+                  onClick={() => {
+                    setRescheduleTarget(null);
+                    setRescheduleSlot(null);
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             )}
-
           </li>
         ))}
       </ul>
     </div>
   );
-}
+};
 
 export default AlumniMeetings;

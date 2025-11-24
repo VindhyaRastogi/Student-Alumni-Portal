@@ -142,7 +142,8 @@ const AlumniPublicProfile = () => {
         <strong>Company:</strong> {profile.company}
       </p>
       <p>
-        <strong>Location:</strong> {profile.location?.city}, {profile.location?.state}, {profile.location?.country}
+        <strong>Location:</strong> {profile.location?.city},{" "}
+        {profile.location?.state}, {profile.location?.country}
       </p>
 
       {/* ✅ Request Meeting Button (hidden when opened from admin) */}

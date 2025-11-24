@@ -61,36 +61,54 @@ mongoose
       // Defensive: check for stray/legacy indexes on the slots collection that can cause duplicate-key errors
       try {
         const db = mongoose.connection.db;
-        const coll = db.collection('slots');
+        const coll = db.collection("slots");
         const indexes = await coll.indexes();
-        console.log('slots collection indexes:', indexes.map(i => i.name));
-        const problematic = indexes.find(i => i.name === 'alumniId_1_slots_1');
+        console.log(
+          "slots collection indexes:",
+          indexes.map((i) => i.name)
+        );
+        const problematic = indexes.find(
+          (i) => i.name === "alumniId_1_slots_1"
+        );
         if (problematic) {
-          console.warn('Dropping legacy index alumniId_1_slots_1 on slots collection to avoid duplicate-key errors');
-          await coll.dropIndex('alumniId_1_slots_1');
-          console.log('Dropped legacy index alumniId_1_slots_1');
+          console.warn(
+            "Dropping legacy index alumniId_1_slots_1 on slots collection to avoid duplicate-key errors"
+          );
+          await coll.dropIndex("alumniId_1_slots_1");
+          console.log("Dropped legacy index alumniId_1_slots_1");
         }
       } catch (idxErr) {
         // non-fatal — just log
-        console.error('Index cleanup check for slots collection failed:', idxErr && idxErr.message);
+        console.error(
+          "Index cleanup check for slots collection failed:",
+          idxErr && idxErr.message
+        );
       }
       // Defensive: check meetings collection for legacy unique index on (alumniId, slot)
       try {
         const db = mongoose.connection.db;
-        const meetingsColl = db.collection('meetings');
+        const meetingsColl = db.collection("meetings");
         const mIndexes = await meetingsColl.indexes();
-        console.log('meetings collection indexes:', mIndexes.map(i => i.name));
-        const legacy = mIndexes.find(i => i.name === 'alumniId_1_slot_1');
+        console.log(
+          "meetings collection indexes:",
+          mIndexes.map((i) => i.name)
+        );
+        const legacy = mIndexes.find((i) => i.name === "alumniId_1_slot_1");
         if (legacy) {
-          console.warn('Dropping legacy unique index alumniId_1_slot_1 on meetings collection');
-          await meetingsColl.dropIndex('alumniId_1_slot_1');
-          console.log('Dropped legacy index alumniId_1_slot_1');
+          console.warn(
+            "Dropping legacy unique index alumniId_1_slot_1 on meetings collection"
+          );
+          await meetingsColl.dropIndex("alumniId_1_slot_1");
+          console.log("Dropped legacy index alumniId_1_slot_1");
           // recreate a non-unique index on the same keys to preserve lookup performance
           await meetingsColl.createIndex({ alumniId: 1, slot: 1 });
-          console.log('Created non-unique index on {alumniId:1, slot:1}');
+          console.log("Created non-unique index on {alumniId:1, slot:1}");
         }
       } catch (midxErr) {
-        console.error('Index cleanup check for meetings collection failed:', midxErr && midxErr.message);
+        console.error(
+          "Index cleanup check for meetings collection failed:",
+          midxErr && midxErr.message
+        );
       }
     });
   })

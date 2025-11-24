@@ -22,6 +22,7 @@ import StudentList from "./pages/StudentList";
 import StudentPublicProfile from "./pages/StudentPublicProfileAdmin";
 import AdminProfile from "./pages/AdminProfile";
 import AlumniMeetingRequest from "./pages/AlumniMeetingRequest";
+import AdminReports from "./pages/AdminReports";
 const App = () => {
   const location = useLocation();
 
@@ -228,6 +229,16 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Reports */}
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminReports />
             </ProtectedRoute>
           }
         />

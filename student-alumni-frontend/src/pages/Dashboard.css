@@ -39,6 +39,17 @@
   z-index: 1;
 }
 
+.reports-badge {
+  display: inline-block;
+  margin-left: 8px;
+  background: #d9534f;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  vertical-align: middle;
+}
+
 .dashboard-card {
   background-color: rgba(255, 255, 255, 0.85);
   border-radius: 15px;
@@ -72,6 +83,16 @@
 .dashboard-card h3 {
   font-size: 1.2rem;
   font-weight: 500;
+}
+
+.card-badge {
+  display: inline-block;
+  margin-left: 8px;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
 }
 
 /* Mobile adjustments */

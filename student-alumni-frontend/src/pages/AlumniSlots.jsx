@@ -27,26 +27,35 @@ const AlumniSlots = () => {
 
   const deleteSlot = async (slotId) => {
     if (!slotId) return;
-    if (!confirm('Delete this slot?')) return;
+    if (!confirm("Delete this slot?")) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/${slotId}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/slots/${slotId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       // refresh list
       fetchMySlots();
     } catch (err) {
-      console.error('Error deleting slot:', err?.response?.data || err.message || err);
-      alert(err?.response?.data?.message || 'Failed to delete slot');
+      console.error(
+        "Error deleting slot:",
+        err?.response?.data || err.message || err
+      );
+      alert(err?.response?.data?.message || "Failed to delete slot");
     }
   };
 
   const clearAllSlots = async () => {
-    if (!confirm('Clear all your slots? This cannot be undone.')) return;
+    if (!confirm("Clear all your slots? This cannot be undone.")) return;
     try {
-      const res = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/slots/clear`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/slots/clear`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       alert(`Deleted ${res.data.deletedCount || 0} slot(s)`);
       fetchMySlots();
     } catch (err) {
-      console.error('Error clearing slots', err);
-      alert('Failed to clear slots');
+      console.error("Error clearing slots", err);
+      alert("Failed to clear slots");
     }
   };
 
@@ -103,11 +112,13 @@ const AlumniSlots = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const createdCount = res.data?.createdCount ?? (res.data?.created ? res.data.created.length : 0);
+      const createdCount =
+        res.data?.createdCount ??
+        (res.data?.created ? res.data.created.length : 0);
       if (createdCount > 0) {
         alert(`Saved ${createdCount} slot(s)`);
       } else {
-        alert(res.data?.message || 'No slots were saved');
+        alert(res.data?.message || "No slots were saved");
       }
 
       setNewSlots([]);
@@ -116,7 +127,12 @@ const AlumniSlots = () => {
       // show server response body if available for debugging
       const serverBody = err?.response?.data;
       console.error("Error adding slots:", serverBody || err.message || err);
-      alert(serverBody?.message || serverBody?.error || err.message || 'Error adding slots');
+      alert(
+        serverBody?.message ||
+          serverBody?.error ||
+          err.message ||
+          "Error adding slots"
+      );
     }
   };
 
@@ -131,7 +147,9 @@ const AlumniSlots = () => {
       {mySlots.length > 0 ? (
         <div>
           <div style={{ marginBottom: 12 }}>
-            <button onClick={clearAllSlots} className="save-btn">Clear all slots</button>
+            <button onClick={clearAllSlots} className="save-btn">
+              Clear all slots
+            </button>
           </div>
           <ul>
             {mySlots.map((s) => {
@@ -145,9 +163,21 @@ const AlumniSlots = () => {
                 display = JSON.stringify(s);
               }
               return (
-                <li key={s._id || `${s.start}-${s.end}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <li
+                  key={s._id || `${s.start}-${s.end}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
                   <span>{display}</span>
-                  <button onClick={() => deleteSlot(s._id)} style={{ marginLeft: 12 }}>Delete</button>
+                  <button
+                    onClick={() => deleteSlot(s._id)}
+                    style={{ marginLeft: 12 }}
+                  >
+                    Delete
+                  </button>
                 </li>
               );
             })}
@@ -162,7 +192,7 @@ const AlumniSlots = () => {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          min={new Date().toISOString().split('T')[0]} // no past dates
+          min={new Date().toISOString().split("T")[0]} // no past dates
         />
         <label>From</label>
         <input
@@ -184,7 +214,9 @@ const AlumniSlots = () => {
           <h4>Slots to be added:</h4>
           <ul>
             {newSlots.map((slot, index) => (
-              <li key={index}>{`${slot.date} ${slot.startTime} - ${slot.endTime}`}</li>
+              <li
+                key={index}
+              >{`${slot.date} ${slot.startTime} - ${slot.endTime}`}</li>
             ))}
           </ul>
           <button className="save-btn" onClick={saveSlots}>
