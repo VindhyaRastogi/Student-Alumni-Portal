@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import './ChatWindow.css';
 
 // Simple server-backed chat UI (plaintext) with polling — behaves like a basic WhatsApp chat window.
 const ChatWindow = () => {
@@ -18,6 +19,8 @@ const ChatWindow = () => {
 	const [error, setError] = useState(null);
 	const pollRef = useRef(null);
 	const boxRef = useRef(null);
+
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		let mounted = true;
@@ -65,9 +68,12 @@ const ChatWindow = () => {
 		if (!input || !chatId) return;
 		try {
 			const payload = { text: input };
-			await axios.post(`${import.meta.env.VITE_API_BASE_URL || ''}/chats/${chatId}/messages`, payload, { headers: { Authorization: `Bearer ${token}` } });
+			// optimistic update
+			const tempMsg = { from: meId, text: input, ts: new Date().toISOString(), _temp: true };
+			setMessages((prev) => [...prev, tempMsg]);
 			setInput('');
-			// optimistic fetch
+			await axios.post(`${import.meta.env.VITE_API_BASE_URL || ''}/chats/${chatId}/messages`, payload, { headers: { Authorization: `Bearer ${token}` } });
+			// refresh messages
 			fetchMessages(chatId);
 		} catch (err) {
 			console.error('send failed', err);
@@ -79,27 +85,34 @@ const ChatWindow = () => {
 	if (error) return <div style={{ padding: 20, color: 'red' }}>{error}</div>;
 
 	return (
-		<div style={{ padding: 12, display: 'flex', flexDirection: 'column', height: '100%' }}>
-			<h2 style={{ marginTop: 0 }}>Chat with {otherName || otherId}</h2>
+		<div className="wa-chat-root">
+			<div className="wa-header">
+				<button className="wa-back" onClick={() => navigate(-1)}>&larr;</button>
+				<div className="wa-avatar">{(otherName || otherId || '?').charAt(0)}</div>
+				<div className="wa-meta">
+					<div className="wa-name">{otherName || otherId}</div>
+					<div className="wa-status">Online</div>
+				</div>
+			</div>
 
-			<div ref={boxRef} style={{ flex: 1, border: '1px solid #ddd', padding: 12, borderRadius: 6, overflowY: 'auto', background: '#ffffff' }}>
-				{messages.length === 0 && <div style={{ color: '#666' }}>No messages yet</div>}
+			<div className="wa-messages" ref={boxRef}>
+				{messages.length === 0 && <div className="wa-empty">No messages yet</div>}
 				{messages.map((m, i) => {
 					const fromMe = String(m.from) === String(meId);
 					return (
-						<div key={i} style={{ display: 'flex', justifyContent: fromMe ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
-							<div style={{ maxWidth: '80%', background: fromMe ? '#0b84ff' : '#f1f0f0', color: fromMe ? '#fff' : '#111', padding: '8px 12px', borderRadius: 12 }}>
-								<div style={{ fontSize: 14 }}>{m.text}</div>
-								<div style={{ fontSize: 11, color: fromMe ? '#e6f0ff' : '#666', marginTop: 6, textAlign: 'right' }}>{new Date(m.ts || m.ts).toLocaleString()}</div>
+						<div key={i} className={`wa-row ${fromMe ? 'me' : 'other'}`}>
+							<div className={`wa-bubble ${fromMe ? 'me-bubble' : 'other-bubble'}`}>
+								<div className="wa-text">{m.text}</div>
+								<div className="wa-time">{new Date(m.ts || m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
 							</div>
 						</div>
 					);
 				})}
 			</div>
 
-			<div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-				<input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message" style={{ flex: 1, padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }} onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }} />
-				<button onClick={sendMessage} style={{ padding: '10px 20px', background: '#0b84ff', color: '#fff', border: 'none', borderRadius: 6 }}>Send</button>
+			<div className="wa-input">
+				<input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message" onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }} />
+				<button className="wa-send" onClick={sendMessage}>Send</button>
 			</div>
 		</div>
 	);
