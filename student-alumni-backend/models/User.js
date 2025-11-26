@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
   profile: { type: mongoose.Schema.Types.Mixed, default: {} }, // store role-specific details here
   // whether the user is allowed to login (admins can disable instead of deleting)
   allowed: { type: Boolean, default: true },
+  // list of user ids this user has blocked (soft block for interactions)
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

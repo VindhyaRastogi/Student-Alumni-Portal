@@ -17,7 +17,7 @@ const StudentList = () => {
 
   const API = import.meta.env.VITE_API_BASE_URL || "";
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, login } = useAuth();
 
   // Report modal states
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -34,7 +34,17 @@ const StudentList = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: filters,
       });
-      setStudents(res.data);
+      const data = res.data || [];
+      // mark which students are blocked by current user
+      const processed = data.map((u) => ({
+        ...u,
+        blockedByMe: !!(
+          currentUser &&
+          Array.isArray(currentUser.blockedUsers) &&
+          currentUser.blockedUsers.find((b) => String(b) === String(u._id))
+        ),
+      }));
+      setStudents(processed);
     } catch (err) {
       console.error("Error fetching students:", err);
     }
@@ -116,27 +126,42 @@ const StudentList = () => {
     }
   };
 
-  // Block user (admin only)
+  // Block/unblock another user (student can block alumni)
   const handleBlock = async (id) => {
-    if (!window.confirm("Block this user? (Admins only)")) return;
+    if (!window.confirm("Block this user? This will prevent further interactions.")) return;
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) return alert("Only admins can block users");
+      if (!token) return alert("Please login to block users");
 
-      const res = await fetch(`${API}/admin/users/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${API}/users/${id}/block`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message || 'Failed to block/unblock user');
 
-      setStudents((prev) =>
-        prev.map((u) => (u._id === id ? { ...u, allowed: false } : u))
-      );
+      setStudents((prev) => prev.map((u) => (u._id === id ? { ...u, blockedByMe: data.blocked } : u)));
 
-      alert("User blocked");
+      // update local auth user blockedUsers so UI across pages is consistent
+      try {
+        const token = localStorage.getItem('token');
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        if (stored) {
+          const updated = { ...stored };
+          updated.blockedUsers = updated.blockedUsers || [];
+          if (data.blocked) {
+            if (!updated.blockedUsers.find((b) => String(b) === String(id))) updated.blockedUsers.push(id);
+          } else {
+            updated.blockedUsers = updated.blockedUsers.filter((b) => String(b) !== String(id));
+          }
+          localStorage.setItem('user', JSON.stringify(updated));
+          if (typeof login === 'function') login(updated, token);
+        }
+      } catch (err) {}
+
+      alert(data.message || (data.blocked ? "User blocked" : "User unblocked"));
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to block user");
@@ -219,7 +244,7 @@ const StudentList = () => {
                     </button>
 
                     <button className="menu-item" onClick={() => handleBlock(s._id)}>
-                      Block
+                      {s.blockedByMe ? 'Unblock' : 'Block'}
                     </button>
 
                     <button className="menu-item" onClick={() => handleReport(s._id)}>

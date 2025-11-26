@@ -25,7 +25,14 @@ const AlumniList = () => {
           params: filters,
         }
       );
-      setAlumni(res.data);
+      const data = res.data || [];
+      const processed = data.map((u) => ({
+        ...u,
+        blockedByMe: !!(
+          currentUser && Array.isArray(currentUser.blockedUsers) && currentUser.blockedUsers.find((b) => String(b) === String(u._id))
+        ),
+      }));
+      setAlumni(processed);
     } catch (err) {
       console.error("Error fetching alumni:", err);
     }
@@ -47,7 +54,7 @@ const AlumniList = () => {
   const API = import.meta.env.VITE_API_BASE_URL || "";
 
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, login } = useAuth();
 
   // report modal state
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -126,22 +133,47 @@ const AlumniList = () => {
   };
 
   const handleBlock = async (id) => {
-    if (!window.confirm("Block this user? (Admins only)")) return;
+    // detect current block state from local list so prompt matches action
+    const target = alumni.find((u) => String(u._id) === String(id));
+    const currentlyBlocked = !!(target && target.blockedByMe);
+    const confirmMsg = currentlyBlocked
+      ? "Unblock this user? They will be able to interact with you again."
+      : "Block this user? This will prevent further interactions.";
+    if (!window.confirm(confirmMsg)) return;
     try {
       const token = localStorage.getItem("token");
-      if (!token) return alert("Only admins can block users");
-      const url = API ? `${API}/admin/users/${id}` : `/api/admin/users/${id}`;
+      if (!token) return alert("Please login to block users");
+      const url = API ? `${API}/users/${id}/block` : `/api/users/${id}/block`;
       const res = await fetch(url, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to block user");
-      // reflect in UI
-      setAlumni((prev) =>
-        prev.map((u) => (u._id === id ? { ...u, allowed: false } : u))
-      );
-      alert("User blocked");
+      if (!res.ok) throw new Error(data.message || "Failed to block/unblock user");
+      // reflect in UI: set a local flag blockedByMe
+      setAlumni((prev) => prev.map((u) => (u._id === id ? { ...u, blockedByMe: data.blocked } : u)));
+      // update local auth user blockedUsers so UI across pages is consistent
+      try {
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        if (stored) {
+          const updated = { ...stored };
+          updated.blockedUsers = updated.blockedUsers || [];
+          if (data.blocked) {
+            if (!updated.blockedUsers.find((b) => String(b) === String(id))) updated.blockedUsers.push(id);
+          } else {
+            updated.blockedUsers = updated.blockedUsers.filter((b) => String(b) !== String(id));
+          }
+          localStorage.setItem('user', JSON.stringify(updated));
+          if (typeof login === 'function') login(updated, token);
+        }
+      } catch (err) {}
+
+      // show a distinct message for unblock vs block
+      if (data.blocked) {
+        alert(data.message || "User blocked");
+      } else {
+        alert(data.message || "User unblocked successfully");
+      }
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to block user");
@@ -238,7 +270,7 @@ const AlumniList = () => {
                       className="menu-item"
                       onClick={() => handleBlock(a._id)}
                     >
-                      Block
+                      {a.blockedByMe ? 'Unblock' : 'Block'}
                     </button>
                     <button
                       className="menu-item"

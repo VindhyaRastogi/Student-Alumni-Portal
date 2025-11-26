@@ -188,3 +188,38 @@ exports.adminUpdateUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Authenticated user: toggle block/unblock another user
+exports.toggleBlockUser = async (req, res) => {
+  try {
+    const actingUserId = req.user && req.user.id;
+    const targetId = req.params.id;
+
+    if (!actingUserId) return res.status(401).json({ message: 'Unauthorized' });
+    if (!targetId) return res.status(400).json({ message: 'Target user id required' });
+    if (actingUserId === targetId) return res.status(400).json({ message: 'Cannot block yourself' });
+
+    const actingUser = await User.findById(actingUserId);
+    if (!actingUser) return res.status(404).json({ message: 'Acting user not found' });
+
+    actingUser.blockedUsers = actingUser.blockedUsers || [];
+    const idx = actingUser.blockedUsers.findIndex((b) => b.toString() === targetId.toString());
+    let blocked = false;
+    if (idx === -1) {
+      // add
+      actingUser.blockedUsers.push(targetId);
+      blocked = true;
+    } else {
+      // remove
+      actingUser.blockedUsers.splice(idx, 1);
+      blocked = false;
+    }
+
+    await actingUser.save();
+
+    res.json({ message: blocked ? 'User blocked' : 'User unblocked', blocked });
+  } catch (err) {
+    console.error('toggleBlockUser error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
