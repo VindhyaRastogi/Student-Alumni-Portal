@@ -12,6 +12,12 @@ const AlumniMeetings = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  const participantKey = (meeting) => {
+    const studentId = meeting.studentId?._id || meeting.studentId || '';
+    const alumniId = meeting.alumniId?.profile?._id || meeting.alumniId?._id || meeting.alumniId || '';
+    return `${studentId}::${alumniId}`;
+  }
+
   const fetch = async () => {
     try {
       setLoading(true);
@@ -100,120 +106,30 @@ const AlumniMeetings = () => {
       <h2>Incoming / My Meetings</h2>
       {meetings.length === 0 && <p>No meetings</p>}
       <ul>
-        {meetings.map((m) => (
-          <li
-            key={m._id}
-            style={{
-              marginBottom: 12,
-              border: "1px solid #ddd",
-              padding: 12,
-              display: "flex",
-              gap: 12,
-              alignItems: "flex-start",
-            }}
-          >
-            <div style={{ width: 56, height: 56, flex: "0 0 56px" }}>
-              {(() => {
-                const stu = m.studentId || m.studentId?._doc || {};
-                const pic =
-                  stu.profile?.profilePicture ||
-                  stu.profilePicture ||
-                  stu.user?.profilePicture ||
-                  stu._doc?.profilePicture ||
-                  stu._doc?.profile?.profilePicture;
-                return pic ? (
-                  <img
-                    src={
-                      pic.startsWith("/")
-                        ? `${import.meta.env.VITE_API_BASE_URL}${pic}`
-                        : pic
-                    }
-                    alt="student"
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      background: "#eee",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {(stu.fullName || "S").charAt(0)}
-                  </div>
-                );
-              })()}
+        {meetings.map(m => (
+          <li key={m._id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 12 }}>
+            <div>
+              <strong>With:</strong>{' '}
+              {m.studentId ? (
+                <Link to={`/student/${m.studentId._id || m.studentId}`}>{m.studentId?._doc?.fullName || m.studentId?.fullName || 'Student'}</Link>
+              ) : (
+                'Student'
+              )}
             </div>
-            <div style={{ flex: 1 }}>
-              <div>
-                <strong>With:</strong>{" "}
-                {m.studentId ? (
-                  <Link to={`/student/${m.studentId._id || m.studentId}`}>
-                    {m.studentId.fullName || m.studentId._doc?.fullName}
-                  </Link>
-                ) : (
-                  "Student"
-                )}
+            <div><strong>When:</strong> {new Date(m.start).toLocaleString()} - {new Date(m.end).toLocaleString()}</div>
+            <div><strong>Status:</strong> {m.status}</div>
+            <div><strong>Message:</strong> {m.message}</div>
+            {((new Date(m.end) <= new Date()) && !meetings.some(other => other._id !== m._id && participantKey(other) === participantKey(m) && new Date(other.start) > new Date() && other.status !== 'cancelled')) ? (
+              <div style={{ marginTop: 8, color: '#b00' }}>
+                <div><strong>Meeting date has been expired</strong></div>
+                <div style={{ marginTop: 8 }}>
+                    <button onClick={async () => { setRescheduleTarget(m._id); await fetchMySlots(); }}>Schedule New Meeting</button>
+                  </div>
               </div>
-              <div>
-                <strong>When:</strong> {new Date(m.start).toLocaleString()} -{" "}
-                {new Date(m.end).toLocaleString()}
-              </div>
-              <div>
-                <strong>Status:</strong> {m.status}
-              </div>
-              <div>
-                <strong>Message:</strong> {m.message}
-              </div>
-              {m.status === "accepted" && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    background: "#e6ffed",
-                    padding: 8,
-                    borderRadius: 4,
-                  }}
-                >
-                  {m.googleMeetLink ? (
-                    <div
-                      style={{ display: "flex", gap: 8, alignItems: "center" }}
-                    >
-                      <div style={{ color: "green", fontWeight: "bold" }}>
-                        Meeting confirmed ✅
-                      </div>
-                      <a
-                        href={m.googleMeetLink}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <button>Join Now</button>
-                      </a>
-                    </div>
-                  ) : m.meetLink ? (
-                    <div>
-                      <strong>Meeting Link: </strong>
-                      <a
-                        href={m.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "#0366d6" }}
-                      >
-                        Join Google Meet
-                      </a>
-                    </div>
-                  ) : creatingLinkFor === m._id ? (
-                    <div>Creating Meeting Link...</div>
-                  ) : (
-                    <div>
+            ) : null}
+                  {m.status === 'pending' && (
+                    <div style={{ marginTop: 8 }}>
+                      <button onClick={() => accept(m._id)}>Accept</button>
                       <button onClick={() => cancel(m._id)}>Cancel</button>
                       <button
                         onClick={async () => {
@@ -225,49 +141,35 @@ const AlumniMeetings = () => {
                       </button>
                     </div>
                   )}
-                </div>
-              )}
-              {m.status === "pending" && (
-                <div style={{ marginTop: 8 }}>
-                  <button onClick={() => accept(m._id)}>Accept</button>
-                  <button onClick={() => cancel(m._id)}>Cancel</button>
-                  <button
-                    onClick={async () => {
-                      setRescheduleTarget(m._id);
-                      await fetchMySlots();
-                    }}
-                  >
-                    Propose Reschedule
-                  </button>
-                </div>
-              )}
 
-              {m.status === "reschedule_requested" && (
-                <div style={{ marginTop: 8 }}>
-                  <div>Proposed by: {m.proposer}</div>
-                  <div>
-                    Proposed slot:{" "}
-                    {m.proposedStart
-                      ? `${new Date(
-                          m.proposedStart
-                        ).toLocaleString()} - ${new Date(
-                          m.proposedEnd
-                        ).toLocaleString()}`
-                      : "N/A"}
-                  </div>
-                  <div>Message: {m.rescheduleMessage}</div>
-                  {/* If alumni, accept the proposed new time */}
-                  <div>
-                    <button onClick={() => accept(m._id)}>
-                      Accept Proposed
-                    </button>
-                    <button onClick={() => cancel(m._id)}>
-                      Reject / Cancel
-                    </button>
-                  </div>
+                  {m.status === 'accepted' && new Date(m.end) > new Date() && (
+                    <div style={{ marginTop: 8 }}>
+                      {m.googleMeetLink ? (
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <div style={{ color: 'green', fontWeight: 'bold' }}>Meeting confirmed ✅</div>
+                          <a href={m.googleMeetLink} target="_blank" rel="noreferrer"><button>Join Now</button></a>
+                        </div>
+                          ) : creatingLinkFor === m._id ? (
+                            <div>Creating Meeting Link...</div>
+                          ) : (
+                            <div>
+                              <button onClick={() => cancel(m._id)}>Cancel</button>
+                            </div>
+                          )}
+                    </div>
+                  )}
+
+            {m.status === 'reschedule_requested' && (
+              <div style={{ marginTop: 8 }}>
+                <div>Proposed by: {m.proposer}</div>
+                <div>Proposed slot: {m.proposedStart ? `${new Date(m.proposedStart).toLocaleString()} - ${new Date(m.proposedEnd).toLocaleString()}` : 'N/A'}</div>
+                <div>Message: {m.rescheduleMessage}</div>
+                {/* If alumni, accept the proposed new time */}
+                <div>
+                  <button onClick={() => cancel(m._id)}>Reject / Cancel</button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {rescheduleTarget === m._id && (
               <div style={{ marginTop: 8 }}>

@@ -10,7 +10,19 @@ const StudentMeetings = () => {
   const [proposedEnd, setProposedEnd] = useState("");
   const token = localStorage.getItem("token");
 
-  const fetch = async () => {
+  // Generate unique participant pair key
+  const participantKey = (meeting) => {
+    const studentId = meeting.studentId?._id || meeting.studentId || "";
+    const alumniId =
+      meeting.alumniId?.profile?._id ||
+      meeting.alumniId?._id ||
+      meeting.alumniId ||
+      "";
+    return `${studentId}::${alumniId}`;
+  };
+
+  // Fetch meetings
+  const fetchMeetings = async () => {
     try {
       setLoading(true);
       const res = await axios.get(
@@ -19,16 +31,25 @@ const StudentMeetings = () => {
       );
       setMeetings(res.data.meetings || []);
     } catch (err) {
-      console.error("Error fetching meetings", err);
+      console.error(
+        "Error fetching meetings:",
+        err?.response?.status,
+        err?.response?.data || err?.message
+      );
+
+      if (err?.response?.status === 403) {
+        console.warn("403 — Token expired or missing permissions.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetch();
+    fetchMeetings();
   }, []);
 
+  // Cancel meeting
   const cancel = async (id) => {
     try {
       await axios.post(
@@ -36,39 +57,62 @@ const StudentMeetings = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetch();
+      fetchMeetings();
     } catch (err) {
       console.error(err);
       alert("Cancel failed");
     }
   };
 
+  // Accept meeting or accept proposed reschedule
+  const accept = async (id) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/accept`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchMeetings();
+    } catch (err) {
+      console.error(err);
+      alert("Accept failed");
+    }
+  };
+
+  // Propose a new schedule
   const propose = async (id) => {
     if (!proposedStart || !proposedEnd)
       return alert("Select start and end to propose");
+
     try {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/meetings/${id}/reschedule`,
-        { start: proposedStart, end: proposedEnd, message: "" },
+        {
+          start: proposedStart,
+          end: proposedEnd,
+          message: "",
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setProposeTarget(null);
       setProposedStart("");
       setProposedEnd("");
-      fetch();
+      fetchMeetings();
     } catch (err) {
       console.error(err);
-      alert("Reschedule failed");
+      alert("Reschedule proposal failed");
     }
   };
 
   return (
     <div style={{ padding: 20 }}>
       <h2>My Meetings</h2>
+
       {loading && <p>Loading...</p>}
       {!loading && meetings.length === 0 && <p>No meetings yet.</p>}
 
-      <ul>
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {meetings.map((m) => (
           <li
             key={m._id}
@@ -79,17 +123,18 @@ const StudentMeetings = () => {
               display: "flex",
               gap: 12,
               alignItems: "flex-start",
+              borderRadius: 6,
             }}
           >
+            {/* Profile Picture */}
             <div style={{ width: 56, height: 56, flex: "0 0 56px" }}>
               {(() => {
-                const alum = m.alumniId || m.alumniId?._doc || {};
+                const alum = m.alumniId || {};
                 const pic =
                   alum.profile?.profilePicture ||
                   alum.profilePicture ||
-                  alum.user?.profilePicture ||
-                  alum._doc?.profilePicture ||
-                  alum._doc?.profile?.profilePicture;
+                  alum.user?.profilePicture;
+
                 return pic ? (
                   <img
                     src={
@@ -122,29 +167,51 @@ const StudentMeetings = () => {
                 );
               })()}
             </div>
+
+            {/* Meeting Details */}
             <div style={{ flex: 1 }}>
               <div>
                 <strong>With:</strong>{" "}
                 {m.alumniId ? (
                   <Link
                     to={`/student/alumni/${
-                      m.alumniId?.profile?._id || m.alumniId._id || m.alumniId
+                      m.alumniId?.profile?._id ||
+                      m.alumniId?._id ||
+                      m.alumniId
                     }`}
                   >
-                    {m.alumniId.fullName || m.alumniId._doc?.fullName}
+                    {m.alumniId.fullName}
                   </Link>
                 ) : (
                   "Alumni"
                 )}
               </div>
+
               <div>
-                <strong>When:</strong> {new Date(m.start).toLocaleString()} -{" "}
+                <strong>When:</strong>{" "}
+                {new Date(m.start).toLocaleString()} –{" "}
                 {new Date(m.end).toLocaleString()}
               </div>
+
+              {/* Expired check */}
+              {new Date(m.end) <= new Date() &&
+                !meetings.some(
+                  (other) =>
+                    other._id !== m._id &&
+                    participantKey(other) === participantKey(m) &&
+                    new Date(other.start) > new Date() &&
+                    other.status !== "cancelled"
+                ) && (
+                  <div style={{ marginTop: 8, color: "#b00" }}>
+                    <strong>Meeting date has expired</strong>
+                  </div>
+                )}
+
               <div>
                 <strong>Status:</strong> {m.status}
               </div>
 
+              {/* If accepted */}
               {m.status === "accepted" && (
                 <div
                   style={{
@@ -154,14 +221,13 @@ const StudentMeetings = () => {
                     borderRadius: 4,
                   }}
                 >
-                  <div>
-                    Your meeting request has been accepted by the alumni.
-                  </div>
-                  {m.googleMeetLink ? (
+                  <div>Your meeting request has been accepted.</div>
+
+                  {m.googleMeetLink || m.meetLink ? (
                     <div style={{ marginTop: 8 }}>
                       <strong>Join meeting: </strong>
                       <a
-                        href={m.googleMeetLink}
+                        href={m.googleMeetLink || m.meetLink}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: "#0366d6" }}
@@ -169,83 +235,92 @@ const StudentMeetings = () => {
                         Join Now
                       </a>
                     </div>
-                  ) : m.meetLink ? (
-                    <div style={{ marginTop: 8 }}>
-                      <strong>Join meeting: </strong>
-                      <a
-                        href={m.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "#0366d6" }}
-                      >
-                        Join Google Meet
-                      </a>
-                    </div>
                   ) : (
-                    <div style={{ fontStyle: "italic", marginTop: 8 }}>
-                      Creating Meeting Link...
-                    </div>
+                    <em style={{ marginTop: 8 }}>Creating Meeting Link...</em>
                   )}
                 </div>
               )}
 
+              {/* If reschedule pending */}
               {m.status === "reschedule_requested" && (
                 <div style={{ marginTop: 8 }}>
                   <div>Proposed by: {m.proposer}</div>
                   <div>
                     Proposed slot:{" "}
                     {m.proposedStart
-                      ? `${new Date(
-                          m.proposedStart
-                        ).toLocaleString()} - ${new Date(
+                      ? `${new Date(m.proposedStart).toLocaleString()} – ${new Date(
                           m.proposedEnd
                         ).toLocaleString()}`
                       : "N/A"}
                   </div>
                   <div>Message: {m.rescheduleMessage}</div>
+
+                  <div style={{ marginTop: 8 }}>
+                    <button onClick={() => accept(m._id)}>Accept Proposed</button>
+                    <button onClick={() => cancel(m._id)}>Reject / Cancel</button>
+                  </div>
                 </div>
               )}
             </div>
 
+            {/* ACTIONS (Right side column) */}
             <div style={{ marginTop: 8 }}>
-              <button onClick={() => cancel(m._id)}>Cancel</button>
-              <button onClick={() => setProposeTarget(m._id)}>
-                Propose Reschedule
-              </button>
-            </div>
-
-            {proposeTarget === m._id && (
-              <div style={{ marginTop: 8 }}>
-                <label>
-                  New start:{" "}
-                  <input
-                    type="datetime-local"
-                    value={proposedStart}
-                    onChange={(e) => setProposedStart(e.target.value)}
-                  />
-                </label>
-                <label>
-                  New end:{" "}
-                  <input
-                    type="datetime-local"
-                    value={proposedEnd}
-                    onChange={(e) => setProposedEnd(e.target.value)}
-                  />
-                </label>
-                <div>
-                  <button onClick={() => propose(m._id)}>Send Proposal</button>
-                  <button
-                    onClick={() => {
-                      setProposeTarget(null);
-                      setProposedStart("");
-                      setProposedEnd("");
-                    }}
-                  >
-                    Cancel
+              {m.status === "pending" && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  }}
+                >
+                  <button onClick={() => cancel(m._id)}>Cancel</button>
+                  <button onClick={() => setProposeTarget(m._id)}>
+                    Propose Reschedule
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Cancel if accepted & upcoming */}
+              {m.status === "accepted" && new Date(m.end) > new Date() && (
+                <button onClick={() => cancel(m._id)}>Cancel</button>
+              )}
+
+              {/* Show reschedule form */}
+              {proposeTarget === m._id && (
+                <div style={{ marginTop: 8 }}>
+                  <label>
+                    New start:{" "}
+                    <input
+                      type="datetime-local"
+                      value={proposedStart}
+                      onChange={(e) => setProposedStart(e.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    New end:{" "}
+                    <input
+                      type="datetime-local"
+                      value={proposedEnd}
+                      onChange={(e) => setProposedEnd(e.target.value)}
+                    />
+                  </label>
+
+                  <div style={{ marginTop: 8 }}>
+                    <button onClick={() => propose(m._id)}>Send Proposal</button>
+                    <button
+                      onClick={() => {
+                        setProposeTarget(null);
+                        setProposedStart("");
+                        setProposedEnd("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </li>
         ))}
       </ul>

@@ -5,22 +5,18 @@ const Student = require("../models/Student");
 const googleMeetService = require("../services/googleMeetService");
 const { createMeetEvent } = require("../services/googleCalendar");
 
-// student requests a meeting with alumni for a specific slot
+// request a meeting: supports student->alumni (original) and alumni->student (new)
 exports.requestMeeting = async (req, res) => {
   try {
-    if (!req.user || !req.user._id)
-      return res.status(401).json({ message: "Authentication required" });
-    const studentId = req.user._id;
-    const {
-      alumniUserId: alumniUserIdParam,
-      start,
-      end,
-      message,
-    } = req.body || {};
-    if (!alumniUserIdParam || !start || !end)
-      return res
-        .status(400)
-        .json({ message: "alumniUserId, start and end are required" });
+    if (!req.user || !req.user._id) return res.status(401).json({ message: 'Authentication required' });
+
+    const callerId = req.user._id;
+    const callerRole = req.user.role || (req.user.isAlumni ? 'alumni' : (req.user.isStudent ? 'student' : 'user'));
+
+    // Accept either alumniUserId (for student-initiated) or studentUserId (for alumni-initiated).
+    const { alumniUserId: alumniUserIdParam, studentUserId: studentUserIdParam, start, end, message } = req.body || {};
+
+    if (!start || !end) return res.status(400).json({ message: 'start and end are required' });
 
     const startDt = new Date(start);
     const endDt = new Date(end);
@@ -29,46 +25,50 @@ exports.requestMeeting = async (req, res) => {
     if (endDt <= startDt)
       return res.status(400).json({ message: "end must be after start" });
 
-    // Resolve alumni id shape: frontend may send a User._id or an Alumni._id
-    let alumniUserId = alumniUserIdParam;
-    // try to find slot by userId, then map alumni doc to userId if needed
-    let slotExists = await Slot.findOne({
-      userId: alumniUserIdParam,
-      start: startDt,
-      end: endDt,
-    });
-    if (!slotExists) {
-      const alumniDoc = await Alumni.findById(alumniUserIdParam);
-      if (alumniDoc && alumniDoc.userId) {
-        alumniUserId = alumniDoc.userId;
+    let studentUserId;
+    let alumniUserId;
+    let slotExists = null;
+
+    if (callerRole === 'alumni') {
+      // alumni initiating a request to a student
+      alumniUserId = callerId;
+      if (!studentUserIdParam) return res.status(400).json({ message: 'studentUserId is required when alumni initiates a request' });
+      studentUserId = studentUserIdParam;
+
+      // find slot belonging to this alumni
+      slotExists = await Slot.findOne({ userId: alumniUserId, start: startDt, end: endDt });
+      if (!slotExists) {
+        // allow slot lookup by alumni doc id or fallback heuristics
+        const alt = await Slot.findOne({ $or: [{ user: alumniUserId }, { user: studentUserId }], start: startDt, end: endDt });
+        if (alt && String(alt.userId) === String(alumniUserId)) slotExists = alt;
+      }
+    } else {
+      // student initiating (original flow)
+      studentUserId = callerId;
+      if (!alumniUserIdParam) return res.status(400).json({ message: 'alumniUserId is required' });
+      alumniUserId = alumniUserIdParam;
+
+      // try to find slot by userId, then map alumni doc to userId if needed
+      slotExists = await Slot.findOne({ userId: alumniUserIdParam, start: startDt, end: endDt });
+      if (!slotExists) {
+        const alumniDoc = await Alumni.findById(alumniUserIdParam);
+        if (alumniDoc && alumniDoc.userId) {
+          alumniUserId = alumniDoc.userId;
+          slotExists = await Slot.findOne({ userId: alumniUserId, start: startDt, end: endDt });
+        }
+      }
+
+      // fallback: flexible time matching within small tolerance
+      if (!slotExists) {
+        const toleranceMs = 5 * 60 * 1000;
+        const startMs = startDt.getTime();
+        const endMs = endDt.getTime();
         slotExists = await Slot.findOne({
-          userId: alumniUserId,
-          start: startDt,
-          end: endDt,
+          $or: [{ userId: alumniUserId }, { user: alumniUserId }, { alumni: alumniUserId }],
+          start: { $gte: new Date(startMs - toleranceMs), $lte: new Date(startMs + toleranceMs) },
+          end: { $gte: new Date(endMs - toleranceMs), $lte: new Date(endMs + toleranceMs) }
         });
       }
-    }
-
-    // fallback: flexible time matching within small tolerance
-    if (!slotExists) {
-      const toleranceMs = 5 * 60 * 1000;
-      const startMs = startDt.getTime();
-      const endMs = endDt.getTime();
-      slotExists = await Slot.findOne({
-        $or: [
-          { userId: alumniUserId },
-          { user: alumniUserId },
-          { alumni: alumniUserId },
-        ],
-        start: {
-          $gte: new Date(startMs - toleranceMs),
-          $lte: new Date(startMs + toleranceMs),
-        },
-        end: {
-          $gte: new Date(endMs - toleranceMs),
-          $lte: new Date(endMs + toleranceMs),
-        },
-      });
     }
 
     if (!slotExists)
@@ -76,14 +76,8 @@ exports.requestMeeting = async (req, res) => {
         .status(400)
         .json({ message: "Selected slot is not available" });
 
-    const meeting = await Meeting.create({
-      studentId,
-      alumniId: alumniUserId,
-      start: startDt,
-      end: endDt,
-      message,
-      slot: slotExists._id,
-    });
+    // create meeting document with correct student/alumni ids
+    const meeting = await Meeting.create({ studentId: studentUserId, alumniId: alumniUserId, start: startDt, end: endDt, message, slot: slotExists._id });
 
     try {
       if (slotExists && typeof slotExists.booked !== "undefined") {
@@ -162,15 +156,43 @@ exports.acceptMeeting = async (req, res) => {
     const userId = req.user._id;
     const meetingId = req.params.id;
     const meeting = await Meeting.findById(meetingId);
-    if (!meeting) return res.status(404).json({ message: "Meeting not found" });
-    if (String(meeting.alumniId) !== String(userId))
-      return res.status(403).json({ message: "Not authorized" });
+    if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
+    // Accept rules:
+    // - If meeting is pending: only the alumni may accept (original flow)
+    // - If meeting is a reschedule_requested: the non-proposer participant may accept the proposed time
+    if (meeting.status === 'pending') {
+      if (String(meeting.alumniId) !== String(userId)) return res.status(403).json({ message: 'Not authorized' });
+      // alumni accepting original request
+      meeting.status = 'accepted';
+      // clear any proposals (should not exist)
+      meeting.proposedStart = undefined;
+      meeting.proposedEnd = undefined;
+      meeting.proposer = undefined;
+      meeting.rescheduleMessage = undefined;
+      await meeting.save();
+    } else if (meeting.status === 'reschedule_requested') {
+      // only allow the non-proposer to accept
+      const proposer = meeting.proposer; // 'alumni' or 'student'
+      const proposerIsAlumni = proposer === 'alumni';
+      const proposerUserId = proposerIsAlumni ? String(meeting.alumniId) : String(meeting.studentId);
+      const otherUserId = proposerIsAlumni ? String(meeting.studentId) : String(meeting.alumniId);
+      if (String(userId) !== otherUserId) return res.status(403).json({ message: 'Not authorized to accept this proposal' });
 
-    meeting.status = "accepted";
-    meeting.proposedStart = undefined;
-    meeting.proposedEnd = undefined;
-    meeting.proposer = undefined;
-    meeting.rescheduleMessage = undefined;
+      // apply proposed times as the new meeting time
+      if (meeting.proposedStart && meeting.proposedEnd) {
+        meeting.start = meeting.proposedStart;
+        meeting.end = meeting.proposedEnd;
+      }
+      meeting.status = 'accepted';
+      // clear proposals
+      meeting.proposedStart = undefined;
+      meeting.proposedEnd = undefined;
+      meeting.proposer = undefined;
+      meeting.rescheduleMessage = undefined;
+      await meeting.save();
+    } else {
+      return res.status(400).json({ message: 'Meeting cannot be accepted in its current state' });
+    }
 
     // try to create Google Meet via local service
     try {
@@ -268,7 +290,20 @@ exports.cancelMeeting = async (req, res) => {
     )
       return res.status(403).json({ message: "Not authorized" });
 
-    meeting.status = "cancelled";
+    // unmark slot as booked if this meeting reserved a slot
+    try {
+      if (meeting.slot) {
+        const slotDoc = await Slot.findById(meeting.slot);
+        if (slotDoc && slotDoc.booked) {
+          slotDoc.booked = false;
+          await slotDoc.save();
+        }
+      }
+    } catch (slotErr) {
+      console.warn('Failed to unmark slot on cancel:', slotErr && slotErr.message ? slotErr.message : slotErr);
+    }
+
+    meeting.status = 'cancelled';
     await meeting.save();
 
     const populated = await Meeting.findById(meeting._id)

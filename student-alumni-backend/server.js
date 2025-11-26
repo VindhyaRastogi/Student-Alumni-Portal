@@ -10,6 +10,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const alumniRoutes = require("./routes/alumniRoutes");
 const slotsRoutes = require("./routes/slotsRoutes");
 const meetingsRoutes = require("./routes/meetingsRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const reportsRoutes = require("./routes/reportsRoutes");
 
@@ -39,6 +40,7 @@ app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/slots", slotsRoutes);
 app.use("/api/meetings", meetingsRoutes);
+app.use("/api/chats", chatRoutes);
 
 // ✅ Default route (optional)
 app.get("/", (req, res) => {

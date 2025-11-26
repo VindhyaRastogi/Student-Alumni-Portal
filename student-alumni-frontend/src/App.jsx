@@ -17,9 +17,11 @@ import AlumniSlots from "./pages/AlumniSlots"; // availability page
 import StudentMeetingRequest from "./pages/StudentMeetingRequest";
 import AlumniMeetings from "./pages/AlumniMeetings";
 import StudentMeetings from "./pages/StudentMeetings";
+import ChatWindow from "./pages/ChatWindow";
 import StudentList from "./pages/StudentList";
 import StudentPublicProfile from "./pages/StudentPublicProfileAdmin";
 import AdminProfile from "./pages/AdminProfile";
+import AlumniMeetingRequest from "./pages/AlumniMeetingRequest";
 import AdminReports from "./pages/AdminReports";
 const App = () => {
   const location = useLocation();
@@ -161,6 +163,16 @@ const App = () => {
           }
         />
 
+        {/* Alumni-initiated meeting request (select one of alumni's slots and request with a student) */}
+        <Route
+          path="/alumni/student/:studentId/request"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniMeetingRequest />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Student meetings (view responses) */}
         <Route
           path="/student/meetings"
@@ -233,6 +245,15 @@ const App = () => {
 
         {/* 🚧 Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Chat route (one-to-one) */}
+        <Route
+          path="/chats/:id"
+          element={
+            <ProtectedRoute allowedRoles={["student", "alumni"]}>
+              <ChatWindow />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );
