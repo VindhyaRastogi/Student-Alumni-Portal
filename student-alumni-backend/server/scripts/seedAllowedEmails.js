@@ -12,7 +12,7 @@ const list = [
   { email: "vindhya@iiitd.ac.in", role: "student" },
   { email: "zubiya@iiitd.ac.in", role: "student" },
   { email: "shreya@iiitd.ac.in", role: "student" },
-
+  { email: "nitya@iiitd.ac.in", role: "student" },
   { email: "ankit@iiitd.ac.in", role: "alumni" },
   { email: "gauri@iiitd.ac.in", role: "alumni" },
   { email: "deepali@iiitd.ac.in", role: "alumni" },

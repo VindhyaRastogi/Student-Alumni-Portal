@@ -17,7 +17,7 @@ const StudentList = () => {
 
   const API = import.meta.env.VITE_API_BASE_URL || "";
   const navigate = useNavigate();
-  const { user: currentUser, login } = useAuth();
+  const { user: currentUser, login, socket } = useAuth();
 
   // Report modal states
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -53,6 +53,31 @@ const StudentList = () => {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  // Real-time: remove or refresh students when we receive a blockedByUser event
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (payload) => {
+      try {
+        const { actingUserId, blocked } = payload || {};
+        if (!actingUserId) return;
+        // If a student blocked the current user (we're the target),
+        // remove that student from the current list when blocked.
+        if (blocked) {
+          setStudents((prev) => prev.filter((s) => String(s._id) !== String(actingUserId)));
+        } else {
+          // on unblock, refresh the list (student may re-appear)
+          fetchStudents();
+        }
+      } catch (err) {
+        console.error("blockedByUser handler error", err);
+      }
+    };
+    socket.on("blockedByUser", handler);
+    return () => {
+      socket.off("blockedByUser", handler);
+    };
+  }, [socket]);
 
   // Close menu on outside click / ESC
   useEffect(() => {
