@@ -29,7 +29,9 @@ const AlumniList = () => {
       const processed = data.map((u) => ({
         ...u,
         blockedByMe: !!(
-          currentUser && Array.isArray(currentUser.blockedUsers) && currentUser.blockedUsers.find((b) => String(b) === String(u._id))
+          currentUser &&
+          Array.isArray(currentUser.blockedUsers) &&
+          currentUser.blockedUsers.find((b) => String(b) === String(u._id))
         ),
       }));
       setAlumni(processed);
@@ -146,25 +148,36 @@ const AlumniList = () => {
       const url = API ? `${API}/users/${id}/block` : `/api/users/${id}/block`;
       const res = await fetch(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to block/unblock user");
+      if (!res.ok)
+        throw new Error(data.message || "Failed to block/unblock user");
       // reflect in UI: set a local flag blockedByMe
-      setAlumni((prev) => prev.map((u) => (u._id === id ? { ...u, blockedByMe: data.blocked } : u)));
+      setAlumni((prev) =>
+        prev.map((u) =>
+          u._id === id ? { ...u, blockedByMe: data.blocked } : u
+        )
+      );
       // update local auth user blockedUsers so UI across pages is consistent
       try {
-        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        const stored = JSON.parse(localStorage.getItem("user") || "null");
         if (stored) {
           const updated = { ...stored };
           updated.blockedUsers = updated.blockedUsers || [];
           if (data.blocked) {
-            if (!updated.blockedUsers.find((b) => String(b) === String(id))) updated.blockedUsers.push(id);
+            if (!updated.blockedUsers.find((b) => String(b) === String(id)))
+              updated.blockedUsers.push(id);
           } else {
-            updated.blockedUsers = updated.blockedUsers.filter((b) => String(b) !== String(id));
+            updated.blockedUsers = updated.blockedUsers.filter(
+              (b) => String(b) !== String(id)
+            );
           }
-          localStorage.setItem('user', JSON.stringify(updated));
-          if (typeof login === 'function') login(updated, token);
+          localStorage.setItem("user", JSON.stringify(updated));
+          if (typeof login === "function") login(updated, token);
         }
       } catch (err) {}
 
@@ -270,7 +283,7 @@ const AlumniList = () => {
                       className="menu-item"
                       onClick={() => handleBlock(a._id)}
                     >
-                      {a.blockedByMe ? 'Unblock' : 'Block'}
+                      {a.blockedByMe ? "Unblock" : "Block"}
                     </button>
                     <button
                       className="menu-item"

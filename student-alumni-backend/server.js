@@ -3,6 +3,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
+const User = require("./models/User");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -47,6 +51,40 @@ app.get("/", (req, res) => {
   res.send("🚀 Student Alumni Portal Backend Running Successfully!");
 });
 
+// create HTTP server and attach socket.io
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+// simple authentication for socket connections: client should send { auth: { token } }
+io.on("connection", async (socket) => {
+  try {
+    const token = socket.handshake.auth && socket.handshake.auth.token;
+    if (!token) return;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return;
+    const room = `user:${user._id}`;
+    socket.join(room);
+    // useful to debug connections
+    console.log(`Socket connected: ${socket.id} joined ${room}`);
+
+    socket.on("disconnect", () => {
+      console.log(`Socket disconnected: ${socket.id}`);
+    });
+  } catch (err) {
+    console.error("Socket auth error:", err && err.message);
+  }
+});
+
+// attach io to app so controllers can emit events
+app.set("io", io);
+
 // ✅ Database + Server startup
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -55,7 +93,7 @@ mongoose
   })
   .then(() => {
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, async () => {
+    httpServer.listen(PORT, async () => {
       console.log(`✅ Server started on port ${PORT}`);
 
       // Defensive: check for stray/legacy indexes on the slots collection that can cause duplicate-key errors

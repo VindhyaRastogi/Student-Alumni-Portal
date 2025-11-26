@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const mongoose = require("mongoose");
 
 // get current user profile
 exports.getMe = async (req, res) => {
@@ -87,6 +88,26 @@ exports.listStudents = async (req, res) => {
         $regex: areaOfInterest,
         $options: "i",
       };
+    }
+
+    // If the requester is authenticated, exclude students who have blocked the requester
+    // so that, for example, when an alumni views the student list they won't see
+    // students who have previously blocked that alumni.
+    try {
+      const requesterId = req.user && req.user.id;
+      if (requesterId) {
+        // Use an ObjectId for reliable comparison, and include students where
+        // blockedUsers does not contain the requesterId. Also allow documents
+        // which don't have a blockedUsers field.
+        const oid = mongoose.Types.ObjectId(requesterId);
+        query.$or = [
+          { blockedUsers: { $exists: false } },
+          { blockedUsers: { $nin: [oid] } },
+        ];
+      }
+    } catch (err) {
+      // ignore and proceed without this filter if something goes wrong
+      console.error("listStudents block-filter error:", err);
     }
 
     const students = await User.find(query).select("-password");
@@ -217,7 +238,20 @@ exports.toggleBlockUser = async (req, res) => {
 
     await actingUser.save();
 
-    res.json({ message: blocked ? 'User blocked' : 'User unblocked', blocked });
+    // Emit a real-time event to the target user so they can update their UI
+    try {
+      const io = req.app && req.app.get && req.app.get("io");
+      if (io && targetId) {
+        io.to(`user:${targetId}`).emit("blockedByUser", {
+          actingUserId: actingUserId,
+          blocked,
+        });
+      }
+    } catch (emitErr) {
+      console.error("emit block event error:", emitErr && emitErr.message);
+    }
+
+    res.json({ message: blocked ? "User blocked" : "User unblocked", blocked });
   } catch (err) {
     console.error('toggleBlockUser error:', err);
     res.status(500).json({ message: 'Server error' });
