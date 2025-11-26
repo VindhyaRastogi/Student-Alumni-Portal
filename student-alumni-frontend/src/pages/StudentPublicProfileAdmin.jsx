@@ -125,7 +125,7 @@ const StudentPublicProfileAdmin = () => {
       </p>
 
       {/* Show request meeting button only for alumni viewers (hide for admins) */}
-      {currentUser && currentUser.role === "alumni" && !state?.fromAdmin && (
+      {/* {currentUser && currentUser.role === "alumni" && !state?.fromAdmin && (
         <div style={{ marginTop: "24px", textAlign: "center" }}>
           <button
             onClick={handleRequestMeeting}
@@ -134,7 +134,7 @@ const StudentPublicProfileAdmin = () => {
             Request Meeting
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

@@ -20,18 +20,32 @@ const AlumniMeetingRequest = () => {
     (async () => {
       try {
         const token = localStorage.getItem("token");
+
         // fetch student user info
-        const sres = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/${studentId}`, { headers: { Authorization: `Bearer ${token}` } });
+        const sres = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/users/${studentId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         if (!mounted) return;
         setStudent(sres.data);
 
         // fetch slots for current alumni
-        const userId = currentUser?._id || JSON.parse(localStorage.getItem('user') || 'null')?._id;
+        const userId =
+          currentUser?._id ||
+          JSON.parse(localStorage.getItem("user") || "null")?._id;
+
         if (userId) {
-          const r = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/slots/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+          const r = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL}/slots/user/${userId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
           const incoming = r.data.slots || [];
           const now = new Date();
-          const future = incoming.filter(sl => new Date(sl.start) > now).sort((a,b)=> new Date(a.start)-new Date(b.start));
+
+          const future = incoming
+            .filter((sl) => new Date(sl.start) > now)
+            .sort((a, b) => new Date(a.start) - new Date(b.start));
+
           if (mounted) setSlots(future);
         }
       } catch (err) {
@@ -40,26 +54,45 @@ const AlumniMeetingRequest = () => {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [studentId, currentUser]);
 
+  const handleAddSlot = () => {
+    navigate("/alumni/slots");
+  };
+
   const handleRequest = async () => {
-    if (!selected) return alert('Please select a slot');
+    if (!selected) return alert("Please select a slot");
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const payload = {
         studentUserId: studentId,
         start: new Date(selected.start).toISOString(),
         end: new Date(selected.end).toISOString(),
         message,
       };
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/meetings`, payload, { headers: { Authorization: `Bearer ${token}` } });
-      alert('Meeting requested to the student — waiting for student to accept');
-      navigate('/alumni/meetings');
+
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/meetings`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Meeting requested to the student — waiting for student to accept");
+      navigate("/alumni/meetings");
     } catch (err) {
       const body = err?.response?.data;
-      console.error('Request failed', body || err);
-      const msg = body?.message || body?.error || err.message || 'Failed to request meeting';
+      console.error("Request failed", body || err);
+
+      const msg =
+        body?.message ||
+        body?.error ||
+        err.message ||
+        "Failed to request meeting";
+
       alert(msg);
     }
   };
@@ -72,20 +105,39 @@ const AlumniMeetingRequest = () => {
       <h2>Request Meeting with {student.fullName || student.name}</h2>
 
       <h3>Your Available Slots</h3>
-      {slots.length === 0 && <p>No available slots — please create slots in your availability page.</p>}
+
+      {slots.length === 0 && (
+        <p>No available slots — please create slots in your availability page.</p>
+      )}
+
       <ul>
-        {slots.map(s => (
+        {slots.map((s) => (
           <li key={s._id}>
             <label>
-              <input type="radio" name="slot" value={s._id} onChange={() => setSelected(s)} />
-              {`${new Date(s.start).toLocaleString()} — ${new Date(s.end).toLocaleString()}`}
+              <input
+                type="radio"
+                name="slot"
+                value={s._id}
+                onChange={() => setSelected(s)}
+              />
+              {`${new Date(s.start).toLocaleString()} — ${new Date(
+                s.end
+              ).toLocaleString()}`}
             </label>
           </li>
         ))}
       </ul>
 
+      {/* 🔽 BUTTON MOVED BELOW SLOTS & CENTERED */}
+      <button className="add-slot-btn" onClick={handleAddSlot}>
+        + Add Slot
+      </button>
+
       <label>Message (optional)</label>
-      <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
 
       <div style={{ marginTop: 16 }}>
         <button onClick={handleRequest}>Request Meeting</button>

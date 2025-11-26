@@ -1,110 +1,156 @@
+/* ---------------------------------------------------
+   Elegant Alumni Dashboard (Glassmorphic + Premium)
+------------------------------------------------------ */
+
 .dashboard-container {
   padding: 2rem;
   min-height: 100vh;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
   text-align: center;
 
-  /* Background image */
-  background-image: url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1470&q=80");
+  /* Soft gradient background + your image */
+  background: linear-gradient(
+      rgba(0, 20, 40, 0.55),
+      rgba(0, 20, 40, 0.55)
+    ),
+    url("/dashboard-bg.jpg"); /* <-- YOUR IMAGE HERE */
+
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  position: relative;
-}
 
-/* Dark overlay for readability */
-.dashboard-container::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 0;
-}
-
-.dashboard-header {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-  position: relative;
-  z-index: 1;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.reports-badge {
-  display: inline-block;
-  margin-left: 8px;
-  background: #d9534f;
-  color: #fff;
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 12px;
-  vertical-align: middle;
-}
-
-.dashboard-card {
-  background-color: rgba(255, 255, 255, 0.85);
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-decoration: none;
-  color: #061a40;
   display: flex;
   flex-direction: column;
   align-items: center;
-  backdrop-filter: blur(4px);
+}
+
+
+/* ---------------------------------------------------
+   HEADER
+------------------------------------------------------ */
+.dashboard-header {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2.5rem;
+  letter-spacing: 1px;
+
+  animation: fadeSlideDown 0.7s ease;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------------------
+   CARD GRID
+------------------------------------------------------ */
+.card-grid {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.7rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---------------------------------------------------
+   DASHBOARD CARDS
+------------------------------------------------------ */
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 18px;
+  padding: 1.8rem;
+  text-decoration: none;
+  color: #0a2a43;
+  font-weight: 500;
+
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border 0.35s;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .dashboard-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
+/* ---------------------------------------------------
+   CARD ICONS
+------------------------------------------------------ */
 .dashboard-icon {
-  width: 70px;
-  height: 70px;
+  width: 75px;
+  height: 75px;
   margin-bottom: 1rem;
-  transition: transform 0.3s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+  transition: transform 0.35s ease;
 }
 
 .dashboard-card:hover .dashboard-icon {
-  transform: rotate(5deg) scale(1.1);
+  transform: scale(1.15) rotate(4deg);
 }
 
+/* ---------------------------------------------------
+   CARD TITLE
+------------------------------------------------------ */
 .dashboard-card h3 {
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  margin-top: 0.3rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.card-badge {
+/* ---------------------------------------------------
+   BADGE (if needed)
+------------------------------------------------------ */
+.card-badge,
+.reports-badge {
   display: inline-block;
-  margin-left: 8px;
+  margin-left: 6px;
   background: #ff4d4f;
   color: #fff;
   font-size: 0.75rem;
-  padding: 3px 8px;
+  padding: 3px 7px;
   border-radius: 12px;
 }
 
-/* Mobile adjustments */
+/* ---------------------------------------------------
+   MOBILE RESPONSIVE
+------------------------------------------------------ */
 @media (max-width: 600px) {
   .dashboard-header {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
+
   .dashboard-card {
-    padding: 1rem;
+    padding: 1.3rem;
+    border-radius: 14px;
   }
+
   .dashboard-icon {
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
   }
 }

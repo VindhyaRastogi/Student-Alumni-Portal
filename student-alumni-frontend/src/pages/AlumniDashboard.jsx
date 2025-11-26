@@ -1,7 +1,12 @@
 import "./Dashboard.css";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const AlumniDashboard = () => {
+  const { user } = useAuth();
+  const displayName =
+    user?.name || user?.fullName || user?.firstName || user?.email?.split("@")[0] ||
+    "User";
   const alumniMenu = [
     {
       title: "Chats",
@@ -42,7 +47,7 @@ const AlumniDashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <h1 className="dashboard-header">🏆 Welcome, Alumni!</h1>
+      <h1 className="dashboard-header">Welcome, {displayName}!</h1>
       <div className="card-grid">
         {alumniMenu.map((item, index) => (
           <Link to={item.link} key={index} className="dashboard-card">
