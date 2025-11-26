@@ -32,4 +32,7 @@ router.patch(
   userCtrl.adminUpdateUser
 );
 
+// Authenticated user: block/unblock another user (toggle)
+router.post("/:id/block", authMiddleware.auth, userCtrl.toggleBlockUser);
+
 module.exports = router;

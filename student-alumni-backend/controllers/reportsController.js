@@ -85,7 +85,7 @@ exports.listReports = async (req, res) => {
       $unwind: { path: "$reporter", preserveNullAndEmptyArrays: true },
     });
 
-    // lookup reported user
+    // lookup reported user (by User._id)
     pipeline.push({
       $lookup: {
         from: "users",
@@ -94,9 +94,18 @@ exports.listReports = async (req, res) => {
         as: "reported",
       },
     });
+    pipeline.push({ $unwind: { path: "$reported", preserveNullAndEmptyArrays: true } });
+
+    // fallback: lookup in Alumni collection in case reportedUserId references an Alumni doc
     pipeline.push({
-      $unwind: { path: "$reported", preserveNullAndEmptyArrays: true },
+      $lookup: {
+        from: "alumnis",
+        localField: "reportedUserId",
+        foreignField: "_id",
+        as: "reportedAlumni",
+      },
     });
+    pipeline.push({ $unwind: { path: "$reportedAlumni", preserveNullAndEmptyArrays: true } });
 
     const match = {};
     if (category) {
@@ -125,26 +134,44 @@ exports.listReports = async (req, res) => {
 
     if (Object.keys(match).length) pipeline.push({ $match: match });
 
-    // filter by reporterRole / reportedRole if provided
+    // filter by reporterRole / reportedRole if provided (BEFORE pagination!)
     if (reporterRole)
       pipeline.push({ $match: { "reporter.role": reporterRole } });
     if (reportedRole)
       pipeline.push({ $match: { "reported.role": reportedRole } });
 
-    // sort
+    // sort BEFORE pagination
     if (sort === "oldest") pipeline.push({ $sort: { createdAt: 1 } });
     else pipeline.push({ $sort: { createdAt: -1 } });
 
-    // pagination
+    // pagination (AFTER filtering and sorting)
     pipeline.push({ $skip: (pageNum - 1) * lim });
     pipeline.push({ $limit: lim });
+
+    // prefer reported user object, otherwise use reportedAlumni fields
+    pipeline.push({
+      $addFields: {
+        reportedResolved: {
+          $cond: [
+            { $ifNull: ["$reported", false] },
+            "$reported",
+            {
+              _id: "$reportedAlumni._id",
+              fullName: "$reportedAlumni.fullName",
+              email: "$reportedAlumni.email",
+              role: "alumni",
+            },
+          ],
+        },
+      },
+    });
 
     // project useful fields
     pipeline.push({
       $project: {
         _id: 1,
         reporter: { _id: 1, fullName: 1, email: 1, role: 1 },
-        reported: { _id: 1, fullName: 1, email: 1, role: 1 },
+        reported: "$reportedResolved",
         reason: 1,
         description: 1,
         status: 1,
@@ -166,6 +193,11 @@ exports.listReports = async (req, res) => {
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     }));
+
+    // Debug: log first report to check reported user data
+    if (reports.length > 0) {
+      console.log('DEBUG listReports - first report:', JSON.stringify(reports[0], null, 2));
+    }
 
     res.json(reports);
   } catch (err) {
